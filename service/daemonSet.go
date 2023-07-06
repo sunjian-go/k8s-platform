@@ -2,6 +2,7 @@ package service
 
 import (
 	"context"
+	"encoding/json"
 	"errors"
 	"github.com/wonderivan/logger"
 	appsv1 "k8s.io/api/apps/v1"
@@ -90,5 +91,16 @@ func (d *daemonSet) DeleteDaemonSet(daemonsetName, namespace string) (err error)
 
 // 更新daemonset
 func (d *daemonSet) UpdateDaemonSet(namespace, content string) (err error) {
-
+	daemonset := new(appsv1.DaemonSet)
+	//将传进来的字符串，转为字符切片类型反序列化到定义好的appsv1.DaemonSet结构体中
+	if err := json.Unmarshal([]byte(content), daemonset); err != nil {
+		logger.Error("反序列化失败：" + err.Error())
+		return errors.New("反序列化失败：" + err.Error())
+	}
+	_, err = K8s.ClientSet.AppsV1().DaemonSets(namespace).Update(context.TODO(), daemonset, metav1.UpdateOptions{})
+	if err != nil {
+		logger.Error("更新daemonset失败: " + err.Error())
+		return errors.New("更新daemonset失败: " + err.Error())
+	}
+	return nil
 }
