@@ -2,7 +2,9 @@ package service
 
 import (
 	"context"
+	"encoding/json"
 	"errors"
+	"fmt"
 	"github.com/goccy/go-json"
 	"github.com/wonderivan/logger"
 	appsv1 "k8s.io/api/apps/v1"
@@ -110,7 +112,8 @@ func (d *deployment) GetdeploymentDetail(deploymentName, namespace string) (depl
 func (d *deployment) DeleteDeployment(deploymentName, namespace string) (err error) {
 	err = K8s.ClientSet.AppsV1().Deployments(namespace).Delete(context.TODO(), deploymentName, metav1.DeleteOptions{})
 	if err != nil {
-		logger.Error("删除deployment失败" + err.Error())
+		logger.Error("删除deployment失败" + fmt.Error())
+		fmt.Println("hello world")
 		return errors.New("删除deployment失败" + err.Error())
 	}
 	return nil
