@@ -78,7 +78,7 @@ func (d *deployment) GetDeployments(filterName, namespace string, limit, page in
 	//将delpoymentList中的deployment列表（Items），放进dataselector对象中，进行排序
 	selectorData := &DataSelector{
 		GenericDataList: d.toCell(deploymentList.Items),
-		dataSelectQuery: &DataSelectQuery{
+		DataSelectQuery: &DataSelectQuery{
 			FilterQuery:   &FilterQuery{Name: filterName},
 			PaginateQuery: &PaginateQuery{Limit: limit, Page: page},
 		},

@@ -31,6 +31,11 @@ func (r *router) InitApiRouter(router *gin.Engine) {
 		GET("/api/appsv1/getdaemonSet", DaemonSet.GetDaemonSets).
 		GET("/api/appsv1/getdaemonSetDetail", DaemonSet.GetDaemonSetDetail).
 		DELETE("/api/appsv1/deleteDaemonSet", DaemonSet.DeleteDaemonSet).
-		PUT("/api/appsv1/updateDaemonSet", DaemonSet.UpdateDaemonSet)
-	//StatefulSet路由
+		PUT("/api/appsv1/updateDaemonSet", DaemonSet.UpdateDaemonSet).
+		//StatefulSet路由
+		GET("/api/appsv1/getstatefulSets", StatefulSet.GetStatefulSets).
+		GET("/api/appsv1/getstatefulSetDetail", StatefulSet.GetStatefulSetDetail).
+		DELETE("/api/appsv1/deletestatefulSet", StatefulSet.DeleteStatefulSet).
+		PUT("/api/appsv1/updatestatefulSet", StatefulSet.UpdateStatefulSet)
+
 }

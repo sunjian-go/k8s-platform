@@ -12,7 +12,7 @@ import (
 // dataSelect 用于封装排序、过滤、分页的数据类型
 type DataSelector struct {
 	GenericDataList []DataCell       //元素切片
-	dataSelectQuery *DataSelectQuery //用于定义过滤和分页的属性的结构体
+	DataSelectQuery *DataSelectQuery //用于定义过滤和分页的属性的结构体
 }
 
 // DataCell接口，用于各种资源list的类型转换，转换后可以使用dataSelector的自定义排序方法
@@ -71,7 +71,7 @@ func (d *DataSelector) Sort() *DataSelector {
 func (d *DataSelector) Filter() *DataSelector {
 	//fmt.Println("传进来的Name为：", d.dataSelectQuery.FilterQuery.Name)
 	//若Name的传参为空，则返回所有元素
-	if d.dataSelectQuery.FilterQuery.Name == "" {
+	if d.DataSelectQuery.FilterQuery.Name == "" {
 		return d
 		fmt.Println("Name为空！！！")
 	}
@@ -79,7 +79,7 @@ func (d *DataSelector) Filter() *DataSelector {
 	filterdList := []DataCell{}
 	for _, value := range d.GenericDataList {
 		//fmt.Println(value.GetName())
-		if !strings.Contains(value.GetName(), d.dataSelectQuery.FilterQuery.Name) {
+		if !strings.Contains(value.GetName(), d.DataSelectQuery.FilterQuery.Name) {
 			continue
 		} else {
 			//fmt.Println("找到了：", value.GetName())
@@ -96,8 +96,8 @@ func (d *DataSelector) Filter() *DataSelector {
 // Paginate方法用于数组分页，根据Limit和Page的传参，返回一定范围的数据
 func (d *DataSelector) Paginate() *DataSelector {
 	//fmt.Println("分页前：", d.GenericDataList)
-	limit := d.dataSelectQuery.PaginateQuery.Limit //获取当前元素切片每页的数量
-	page := d.dataSelectQuery.PaginateQuery.Page   //获取当前元素切片的页数
+	limit := d.DataSelectQuery.PaginateQuery.Limit //获取当前元素切片每页的数量
+	page := d.DataSelectQuery.PaginateQuery.Page   //获取当前元素切片的页数
 	//fmt.Println("分页信息 ", limit, page)
 	//验证参数合法，若参数不合法，则返回所有数据
 	if limit <= 0 || page <= 0 {
@@ -160,5 +160,18 @@ func (d daemonSetCell) GetCreation() time.Time {
 
 // daemonSetCell重写DataCell的GetCreation方法
 func (d daemonSetCell) GetName() string {
+	return d.Name
+}
+
+// 定义statefulSetCell类型，实现DataCell接口，用于类型转换
+type statefulSetCell appsv1.StatefulSet
+
+// statefulSetCell重写DataCell的GetName方法
+func (d statefulSetCell) GetCreation() time.Time {
+	return d.CreationTimestamp.Time
+}
+
+// statefulSetCell重写DataCell的GetCreation方法
+func (d statefulSetCell) GetName() string {
 	return d.Name
 }

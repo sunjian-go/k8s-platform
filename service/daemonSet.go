@@ -27,11 +27,11 @@ func (d *daemonSet) toCell(daemonSets []appsv1.DaemonSet) []DataCell {
 	return cells
 }
 
-// fromCells方法用于将DataCell类型数组，转换成daemonSet类型数组
+// fromCells方法用于将DataCell类型数组，转换成daemonSetCell类型数组
 func (d *daemonSet) fromCells(cells []DataCell) []appsv1.DaemonSet {
 	daemonSets := make([]appsv1.DaemonSet, len(cells))
 	for i := range cells {
-		//cells[i].(podCell)就使用到了断言,断言后转换成了podCell类型，然后又转换成了Pod类型
+		//cells[i].(daemonSetCell)就使用到了断言,断言后转换成了daemonSetCell类型，然后又转换成了daemonSet类型
 		daemonSets[i] = appsv1.DaemonSet(cells[i].(daemonSetCell))
 	}
 	return daemonSets
@@ -47,7 +47,7 @@ func (d *daemonSet) GetDaemonSets(daemonSetName, namespace string, limit, page i
 	//组装好数据准备下一步
 	daemonset := &DataSelector{
 		GenericDataList: d.toCell(daemonsets.Items),
-		dataSelectQuery: &DataSelectQuery{
+		DataSelectQuery: &DataSelectQuery{
 			FilterQuery: &FilterQuery{
 				Name: daemonSetName,
 			},

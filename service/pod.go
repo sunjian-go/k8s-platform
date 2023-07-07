@@ -72,7 +72,7 @@ func (p *pod) GetPods(filterName, namespace string, limit, page int) (podsresp *
 	//实例化dataSelector对象
 	selecttableData := &DataSelector{
 		GenericDataList: p.toCell(podList.Items), //将pods列表转换为DataCell类型赋值
-		dataSelectQuery: &DataSelectQuery{ //
+		DataSelectQuery: &DataSelectQuery{ //
 			FilterQuery: &FilterQuery{
 				Name: filterName, //将传进来的需要查找的Name赋值给该结构体
 			},
