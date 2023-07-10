@@ -175,3 +175,12 @@ func (d statefulSetCell) GetCreation() time.Time {
 func (d statefulSetCell) GetName() string {
 	return d.Name
 }
+
+type serviceCell corev1.Service
+
+func (s serviceCell) GetCreation() time.Time {
+	return s.CreationTimestamp.Time
+}
+func (s serviceCell) GetName() string {
+	return s.Name
+}

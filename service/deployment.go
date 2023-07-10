@@ -45,8 +45,6 @@ type DeployCreate struct {
 	HealthPath    string            `json:"healthPath"`
 }
 
-// toCells方法用于将pod类型数组，转换成DataCell类型数组
-
 // toCells方法用于将deployment类型数组，转换成DataCell类型数组
 
 func (d *deployment) toCell(deployments []appsv1.Deployment) []DataCell {
