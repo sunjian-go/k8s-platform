@@ -36,6 +36,17 @@ func (r *router) InitApiRouter(router *gin.Engine) {
 		GET("/api/appsv1/getstatefulSets", StatefulSet.GetStatefulSets).
 		GET("/api/appsv1/getstatefulSetDetail", StatefulSet.GetStatefulSetDetail).
 		DELETE("/api/appsv1/deletestatefulSet", StatefulSet.DeleteStatefulSet).
-		PUT("/api/appsv1/updatestatefulSet", StatefulSet.UpdateStatefulSet)
+		PUT("/api/appsv1/updatestatefulSet", StatefulSet.UpdateStatefulSet).
+		//node路由
+		GET("/api/corev1/getnodes", Node.GetNodes).
+		GET("/api/corev1/getnodedetail", Node.GetNodeDetail).
+		//namespace路由
+		GET("/api/corev1/getnamespaces", Namespace.GetNamespaces).
+		GET("/api/corev1/getnamespaceDetail", Namespace.GetNamespaceDetail).
+		DELETE("/api/corev1/deletenamespace", Namespace.DeleteNamespace).
+		//PV路由
+		GET("/api/corev1/getpvs", Pv.GetPvs).
+		GET("/api/corev1/getpvdetail", Pv.GetPvDetail).
+		DELETE("/api/corev1/deletepv", Pv.DeletePv)
 
 }
