@@ -10,7 +10,7 @@ import (
 	"k8s.io/apimachinery/pkg/util/intstr"
 )
 
-var Service service
+var SVC service
 
 type service struct {
 }
