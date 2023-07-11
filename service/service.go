@@ -91,7 +91,7 @@ func (s *service) GetSvcDetail(svcname, namespace string) (svc *corev1.Service, 
 		logger.Error("获取svc详情失败: " + err.Error())
 		return nil, errors.New("获取svc详情失败: " + err.Error())
 	}
-	return svc, err
+	return svc, nil
 }
 
 // 删除Service
@@ -116,12 +116,12 @@ func (s *service) CreateSvc(data *ServiceCreate) (err error) {
 		//Spec中定义类型，端口，选择器
 		Spec: corev1.ServiceSpec{
 			Type: corev1.ServiceType(data.Type),
-			Ports: []corev1.ContainerPort{
+			Ports: []corev1.ServicePort{
 				{
 					Name:     "http",
-					HostPort: data.Port,
+					Port:     data.Port,
 					Protocol: "TCP",
-					ContainerPort: intstr.IntOrString{
+					TargetPort: intstr.IntOrString{
 						Type:   0,
 						IntVal: data.ContainerPort,
 					},

@@ -47,6 +47,12 @@ func (r *router) InitApiRouter(router *gin.Engine) {
 		//PV路由
 		GET("/api/corev1/getpvs", Pv.GetPvs).
 		GET("/api/corev1/getpvdetail", Pv.GetPvDetail).
-		DELETE("/api/corev1/deletepv", Pv.DeletePv)
+		DELETE("/api/corev1/deletepv", Pv.DeletePv).
+		//svc路由
+		GET("/api/corev1/getsvc", SVC.GetSvcs).
+		GET("/api/corev1/getsvcdetail", SVC.GetSvcDetail).
+		POST("/api/corev1/createsvc", SVC.CreateSvc).
+		DELETE("/api/corev1/deletesvc", SVC.DeleteSvc).
+		PUT("/api/corev1/updatesvc", SVC.UpdateSvc)
 
 }
