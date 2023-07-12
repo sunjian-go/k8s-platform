@@ -53,6 +53,17 @@ func (r *router) InitApiRouter(router *gin.Engine) {
 		GET("/api/corev1/getsvcdetail", SVC.GetSvcDetail).
 		POST("/api/corev1/createsvc", SVC.CreateSvc).
 		DELETE("/api/corev1/deletesvc", SVC.DeleteSvc).
-		PUT("/api/corev1/updatesvc", SVC.UpdateSvc)
+		PUT("/api/corev1/updatesvc", SVC.UpdateSvc).
+		//ingress路由
+		GET("/api/networking/geting", Ingress.GetIngresses).
+		GET("/api/networking/getingdetail", Ingress.GetIngressDetail).
+		POST("/api/networking/createing", Ingress.CreateIngress).
+		DELETE("/api/networking/deleteing", Ingress.DeleteIngress).
+		PUT("/api/networking/updateing", Ingress.UpdateIngress).
+		//路由
+		GET("/api/corev1/getcms", ConfigMap.GetConfigMaps).
+		GET("/api/corev1/getcmdetail", ConfigMap.GetConfigDetail).
+		DELETE("/api/corev1/deletecm", ConfigMap.DeleteConfigMap).
+		PUT("/api/corev1/updatecm", ConfigMap.UpdateConfigMap)
 
 }

@@ -4,6 +4,8 @@ import (
 	"fmt"
 	appsv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
+	Networkingv1 "k8s.io/api/networking/v1"
+
 	"sort"
 	"strings"
 	"time"
@@ -122,6 +124,7 @@ func (d *DataSelector) Paginate() *DataSelector {
 	return d
 }
 
+// pod
 // 定义podCell类型，实现DataCell接口，用于类型转换
 // corev1.Pod->podCell->DataCell，podCell相当于corev1.Pod转到DataCell的一个桥梁
 type podCell corev1.Pod
@@ -136,6 +139,7 @@ func (p podCell) GetName() string {
 	return p.Name //返回Name
 }
 
+// deployment
 // 定义deploymentCell类型，实现DataCell接口，用于类型转换
 // appsv1.Deployment->deploymentCell->DataCell，deploymentCell相当于appsv1.Deployment转到DataCell的一个桥梁
 type deploymentCell appsv1.Deployment
@@ -150,6 +154,7 @@ func (d deploymentCell) GetName() string {
 	return d.Name
 }
 
+// daemonSet
 // 定义daemonSetCell类型，实现DataCell接口，用于类型转换
 type daemonSetCell appsv1.DaemonSet
 
@@ -163,6 +168,7 @@ func (d daemonSetCell) GetName() string {
 	return d.Name
 }
 
+// statefulSet
 // 定义statefulSetCell类型，实现DataCell接口，用于类型转换
 type statefulSetCell appsv1.StatefulSet
 
@@ -176,6 +182,7 @@ func (d statefulSetCell) GetName() string {
 	return d.Name
 }
 
+// service
 type serviceCell corev1.Service
 
 func (s serviceCell) GetCreation() time.Time {
@@ -183,4 +190,44 @@ func (s serviceCell) GetCreation() time.Time {
 }
 func (s serviceCell) GetName() string {
 	return s.Name
+}
+
+// ingress
+type ingressCell Networkingv1.Ingress
+
+func (i ingressCell) GetCreation() time.Time {
+	return i.CreationTimestamp.Time
+}
+func (i ingressCell) GetName() string {
+	return i.Name
+}
+
+// configMap
+type cmCell corev1.ConfigMap
+
+func (c cmCell) GetCreation() time.Time {
+	return c.CreationTimestamp.Time
+}
+func (c cmCell) GetName() string {
+	return c.Name
+}
+
+// Secret
+type secretCell corev1.Secret
+
+func (s secretCell) GetCreation() time.Time {
+	return s.CreationTimestamp.Time
+}
+func (s secretCell) GetName() string {
+	return s.Name
+}
+
+// pvc
+type pvcCell corev1.PersistentVolumeClaim
+
+func (p pvcCell) GetCreation() time.Time {
+	return p.CreationTimestamp.Time
+}
+func (p pvcCell) GetName() string {
+	return p.Name
 }
