@@ -60,10 +60,20 @@ func (r *router) InitApiRouter(router *gin.Engine) {
 		POST("/api/networking/createing", Ingress.CreateIngress).
 		DELETE("/api/networking/deleteing", Ingress.DeleteIngress).
 		PUT("/api/networking/updateing", Ingress.UpdateIngress).
-		//路由
+		//configMap路由
 		GET("/api/corev1/getcms", ConfigMap.GetConfigMaps).
 		GET("/api/corev1/getcmdetail", ConfigMap.GetConfigDetail).
 		DELETE("/api/corev1/deletecm", ConfigMap.DeleteConfigMap).
-		PUT("/api/corev1/updatecm", ConfigMap.UpdateConfigMap)
+		PUT("/api/corev1/updatecm", ConfigMap.UpdateConfigMap).
+		//secret路由
+		GET("/api/corev1/getsecrets", Secret.GetSecrets).
+		GET("/api/corev1/getsecretdetail", Secret.GetSecretDetail).
+		DELETE("/api/corev1/deletesecret", Secret.DeleteSecret).
+		PUT("/api/corev1/updatesecret", Secret.UpdateSecret).
+		//PVC路由
+		GET("/api/corev1/getpvcs", Pvc.GetPvcs).
+		GET("/api/corev1/getpvcdetail", Pvc.GetPvcDetail).
+		DELETE("/api/corev1/deletepvc", Pvc.DeletePvc).
+		PUT("/api/corev1/updatepvc", Pvc.UpdatePvc)
 
 }
