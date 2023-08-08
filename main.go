@@ -19,7 +19,8 @@ func main() {
 	for _, data := range workflowResp.Items {
 		fmt.Println("查询出来的数据为：", data)
 	}
-
+	data, _ := dao.Workflow.GetById(1)
+	fmt.Println("查询出来的数据为：", data)
 	//初始化路由
 	r := gin.Default()
 	controller.Router.InitApiRouter(r)

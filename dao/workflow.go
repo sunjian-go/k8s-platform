@@ -13,13 +13,13 @@ var Workflow workflow
 type workflow struct {
 }
 
-type workflowResp struct {
+type WorkflowResp struct {
 	Items []*model.WorkFlow `json:"items"`
 	Total int               `json:"total"`
 }
 
 // 获取workflow列表
-func (w *workflow) GetWorkflow(fiterName string, page, limit int) (data *workflowResp, err error) {
+func (w *workflow) GetWorkflow(fiterName string, page, limit int) (data *WorkflowResp, err error) {
 	//定义分页的起始位置
 	startSet := (page - 1) * limit
 	//定义数据库查询返回的内容
@@ -36,21 +36,21 @@ func (w *workflow) GetWorkflow(fiterName string, page, limit int) (data *workflo
 		return nil, errors.New("获取Workflow列表失败，" + tx.Error.Error())
 	}
 	fmt.Println("debug4")
-	return &workflowResp{
+	return &WorkflowResp{
 		Items: workflowList,
 		Total: len(workflowList),
 	}, nil
 }
 
-// 获取单挑workflow数据
-func (w *workflow) GetById(id int) (workflow *model.WorkFlow, err error) {
-	workflow = &model.WorkFlow{}
-	tx := db.GORM.Where("id=?", id).Find(workflow)
+// 获取单条workflow数据
+func (w *workflow) GetById(id int) (workflow *model.WorkFlow, err error) { //形参只是声明类型，并没有开辟空间
+	work := new(model.WorkFlow) //给结构体开辟空间
+	tx := db.GORM.Where("id=?", id).First(work)
 	if tx.Error != nil && tx.Error.Error() == "record not found" {
 		logger.Error("获取workflow单条数据失败 " + tx.Error.Error())
 		return nil, errors.New("获取workflow单条数据失败 " + tx.Error.Error())
 	}
-	return
+	return work, nil
 }
 
 // 表数据新增
@@ -64,6 +64,12 @@ func (w *workflow) Add(workflow *model.WorkFlow) (err error) {
 }
 
 // 表数据删除
+// 删除workflow
+// 软删除 db.GORM.Delete("id = ?", id)
+// 软删除执行的是UPDATE语句，将deleted_at字段设置为时间即可， gorm 默认就是软删。
+// 实际执行语句 UPDATE `workflow` SET `deleted_at` = '2021-03-01 08:32:11' WHERE `id` IN ('1'
+// 硬删除 db.GORM.Unscoped().Delete("id = ?", id)) 直接从表中删除这条数据
+// 实际执行语句 DELETE FROM `workflow` WHERE `id` IN ('1');
 func (w *workflow) Delete(id int) (err error) {
 	tx := db.GORM.Where("id=?", id).Delete(&model.WorkFlow{})
 	if tx.Error != nil {
