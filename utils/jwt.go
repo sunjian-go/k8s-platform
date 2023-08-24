@@ -4,7 +4,6 @@ import (
 	"errors"
 	"github.com/dgrijalva/jwt-go"
 	"github.com/wonderivan/logger"
-	"golang.org/x/oauth2/jwt"
 )
 
 var JWTToken jwtToken
