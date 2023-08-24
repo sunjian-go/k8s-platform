@@ -29,8 +29,8 @@ type WorkflowCreate struct {
 }
 
 // 获取列表分页查询
-func (w *workflow) GetList(name string, page, limit int) (data *dao.WorkflowResp, err error) {
-	data, err = dao.Workflow.GetWorkflow(name, page, limit)
+func (w *workflow) GetList(name, namespace string, page, limit int) (data *dao.WorkflowResp, err error) {
+	data, err = dao.Workflow.GetWorkflow(name, namespace, page, limit)
 	if err != nil {
 		return nil, err
 	}
@@ -168,9 +168,12 @@ func (w *workflow) DelById(id int) (err error) {
 
 // 删除k8s资源 deployment service ingress
 func delWorkflowResp(data *model.WorkFlow) (err error) {
-	err = Ingress.DeleteIngress(getIngressName(data.Name), data.Namespace)
-	if err != nil {
-		return err
+	//如果有Ingress才删除
+	if data.Type == "Ingress" {
+		err = Ingress.DeleteIngress(getIngressName(data.Name), data.Namespace)
+		if err != nil {
+			return err
+		}
 	}
 	err = SVC.DeleteSvc(getServiceName(data.Name), data.Namespace)
 	if err != nil {

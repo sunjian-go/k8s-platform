@@ -50,7 +50,6 @@ func Init() {
 	logger.Info("连接数据库成功")
 	//建表
 	GORM.AutoMigrate(&model.WorkFlow{})
-	fmt.Println("GORM==: ", GORM)
 }
 
 // db的关闭函数
