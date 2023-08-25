@@ -7,6 +7,7 @@ import (
 	"k8s-platform/db"
 	"k8s-platform/middle"
 	"k8s-platform/service"
+	"net/http"
 )
 
 func main() {
@@ -19,5 +20,12 @@ func main() {
 	r.Use(middle.JWTAuth()) //加载jwt中间件，用于token验证
 	r.Use(middle.Cors())    //加载跨域中间件（放在初始化路由之前）
 	controller.Router.InitApiRouter(r)
+	//启动websocket
+	go func() {
+		http.HandleFunc("/wc", service.Terminal.WsHandler)
+		http.ListenAndServe("8081", nil)
+	}()
 	r.Run(config.ListenAddr)
+	//关闭数据库连接
+	db.Close()
 }
