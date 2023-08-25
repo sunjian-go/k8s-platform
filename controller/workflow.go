@@ -1,6 +1,7 @@
 package controller
 
 import (
+	"fmt"
 	"github.com/gin-gonic/gin"
 	"k8s-platform/service"
 	"strconv"
@@ -83,9 +84,10 @@ func (w *workflow) CreateWorkflow(c *gin.Context) {
 func (w *workflow) DelById(c *gin.Context) {
 	id := c.Param("id")
 	idd, _ := strconv.Atoi(id)
+	fmt.Println("id=", id, "   idd=", idd)
 	if err := service.Workflow.DelById(idd); err != nil {
 		c.JSON(400, gin.H{
-			"err":  err,
+			"err":  err.Error(),
 			"data": nil,
 		})
 		return

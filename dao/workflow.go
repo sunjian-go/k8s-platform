@@ -71,7 +71,13 @@ func (w *workflow) Add(workflow *model.WorkFlow) (err error) {
 // 实际执行语句 DELETE FROM `workflow` WHERE `id` IN ('1');
 func (w *workflow) Delete(id int) (err error) {
 	fmt.Println("传过来的id为：", id)
-	tx := db.GORM.Where("id=?", id).Delete(&model.WorkFlow{})
+	dworkflow := new(model.WorkFlow)
+	del := db.GORM.Where("id=?", id).First(dworkflow)
+	if del.Error != nil {
+		logger.Error("workflow不存在或已删除: " + del.Error.Error())
+		return errors.New("workflow不存在或已删除: " + del.Error.Error())
+	}
+	tx := db.GORM.Where("id=?", id).Delete(dworkflow)
 	if tx.Error != nil {
 		logger.Error("删除workflow失败: " + tx.Error.Error())
 		return errors.New("删除workflow失败: " + tx.Error.Error())

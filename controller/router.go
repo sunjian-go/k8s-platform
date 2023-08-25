@@ -11,7 +11,7 @@ func (r *router) InitApiRouter(router *gin.Engine) {
 
 	router.
 		//pod路由
-		GET("/api/corev1/pods", Pod.GetPods).
+		GET("/api/corev1/getpods", Pod.GetPods).
 		GET("/api/corev1/podetail", Pod.GetPodDetail).
 		DELETE("/api/corev1/deletepod", Pod.DeletePod).
 		PUT("/api/corev1/updatepod", Pod.UpdatePod).
@@ -78,7 +78,7 @@ func (r *router) InitApiRouter(router *gin.Engine) {
 		//workflow路由
 		GET("/api/workflow/getworkflows", Workflow.GetWorkflows).
 		GET("/api/workflow/getbyid", Workflow.GetById).
-		DELETE("/api/workflow/delbyid", Workflow.DelById).
+		DELETE("/api/workflow/delbyid/:id", Workflow.DelById).
 		POST("/api/workflow/createworkflow", Workflow.CreateWorkflow)
 
 }

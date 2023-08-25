@@ -34,6 +34,7 @@ func (w *workflow) GetList(name, namespace string, page, limit int) (data *dao.W
 	if err != nil {
 		return nil, err
 	}
+	//fmt.Println("获取workflow：", data)
 	return data, nil
 }
 
@@ -150,6 +151,8 @@ func getIngressName(workflowName string) (ingressName string) {
 func (w *workflow) DelById(id int) (err error) {
 	//获取数据库数据,用于删除k8s资源的参数
 	workflow, err := dao.Workflow.GetById(id)
+	//_, err = dao.Workflow.GetById(id)
+	//fmt.Println("获取要删除的workflow: ", workflow)
 	if err != nil {
 		return err
 	}
@@ -168,6 +171,7 @@ func (w *workflow) DelById(id int) (err error) {
 
 // 删除k8s资源 deployment service ingress
 func delWorkflowResp(data *model.WorkFlow) (err error) {
+	//fmt.Println("准备删除workflow: ", data)
 	//如果有Ingress才删除
 	if data.Type == "Ingress" {
 		err = Ingress.DeleteIngress(getIngressName(data.Name), data.Namespace)
