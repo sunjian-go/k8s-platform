@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"github.com/gin-gonic/gin"
 	"k8s-platform/config"
 	"k8s-platform/controller"
@@ -22,8 +23,9 @@ func main() {
 	controller.Router.InitApiRouter(r)
 	//启动websocket
 	go func() {
-		http.HandleFunc("/wc", service.Terminal.WsHandler)
-		http.ListenAndServe("8081", nil)
+		http.HandleFunc("/ws", service.Terminal.WsHandler)
+		http.ListenAndServe(":8081", nil)
+		fmt.Println("ws服务已启动。。。")
 	}()
 	r.Run(config.ListenAddr)
 	//关闭数据库连接

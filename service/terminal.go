@@ -29,7 +29,7 @@ func (t *terminal) WsHandler(w http.ResponseWriter, r *http.Request) {
 		logger.Error("加载k8s配置失败：" + err.Error())
 		return
 	}
-	//解析form入参，获取namespace,pod,container参数
+	//解析form入参，获取前端传入的namespace,pod,container参数
 	if err := r.ParseForm(); err != nil {
 		logger.Error("解析参数失败：" + err.Error())
 		return
@@ -72,6 +72,7 @@ func (t *terminal) WsHandler(w http.ResponseWriter, r *http.Request) {
 			TTY:       true,
 		}, scheme.ParameterCodec)
 	logger.Info("exec post request url: ", req)
+	//fmt.Println("req.URL= ", req.URL())
 
 	//升级SPDY协议
 	executor, err := remotecommand.NewSPDYExecutor(conf, "POST", req.URL())
@@ -79,7 +80,7 @@ func (t *terminal) WsHandler(w http.ResponseWriter, r *http.Request) {
 		logger.Error("建立SPDY连接失败，" + err.Error())
 		return
 	}
-	//与kublet建立stream连接
+	//与kubelet建立stream连接
 	err = executor.Stream(remotecommand.StreamOptions{
 		Stdin:             pty,
 		Stdout:            pty,
@@ -100,8 +101,8 @@ func (t *terminal) WsHandler(w http.ResponseWriter, r *http.Request) {
 type terminalMessage struct {
 	Operation string `json:"operation"`
 	Data      string `json:"data"`
-	Rows      string `json:"rows"`
-	Cols      string `json:"cols"`
+	Rows      uint16 `json:"rows"`
+	Cols      uint16 `json:"cols"`
 }
 
 // 交互的结构体，接管输入和输出
@@ -122,7 +123,7 @@ var upgrader = func() websocket.Upgrader {
 }()
 
 // 创建TerminalSession类型的对象并返回
-func NewTerminalSession(w http.ResponseWriter, r http.Request, responseHeader http.Header) (*TerminalSession, error) {
+func NewTerminalSession(w http.ResponseWriter, r *http.Request, responseHeader http.Header) (*TerminalSession, error) {
 	conn, err := upgrader.Upgrade(w, r, responseHeader)
 	if err != nil {
 		return nil, errors.New("升级websocket失败：" + err.Error())
@@ -139,21 +140,24 @@ func NewTerminalSession(w http.ResponseWriter, r http.Request, responseHeader ht
 // 读消息
 // 用于读取web端的输入，接收web端输入的指令内容,返回值int是读成功了多少数据
 func (t *TerminalSession) Read(p []byte) (int, error) {
-	//从ws中读取消息
+	//从ws中读取消息,也就是读取stdin的消息
 	_, message, err := t.wsConn.ReadMessage()
 	if err != nil {
 		log.Printf("read message err: %v", err)
 		return 0, err
 	}
-	//从ws中读取出来的消息进行反序列化
+
+	//从ws中读取出来的stdin的消息进行反序列化
 	var msg terminalMessage
 	if err := json.Unmarshal(message, &msg); err != nil {
 		log.Printf("read parse message err: %v", err)
 		return 0, err
 	}
+	//fmt.Println("反序列化之后为：", msg)
 	//根据消息内容的选项做不同动作
 	switch msg.Operation {
 	case "stdin":
+		//fmt.Println("msg.data= ", msg.Data)
 		return copy(p, msg.Data), nil
 	case "resize":
 		t.sizeChan <- remotecommand.TerminalSize{Width: msg.Cols, Height: msg.Rows}
