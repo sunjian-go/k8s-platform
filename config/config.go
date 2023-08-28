@@ -7,6 +7,9 @@ const (
 	Kubeconfig     = "D:\\sunjian\\golang\\ncode\\k8s-platform\\k8sconf\\config.txt"
 	PodLogTailLine = 2000 //tail的日志行数 tail -n 2000
 
+	AdminUser   = "admin"
+	AdminPasswd = "admin123"
+
 	//数据库配置
 	DbType = "mysql"
 	DbHost = "127.0.0.1"

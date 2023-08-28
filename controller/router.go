@@ -11,6 +11,7 @@ func (r *router) InitApiRouter(router *gin.Engine) {
 
 	router.
 		//pod路由
+		POST("/login", Login.Login).
 		GET("/api/corev1/getpods", Pod.GetPods).
 		GET("/api/corev1/podetail", Pod.GetPodDetail).
 		DELETE("/api/corev1/deletepod", Pod.DeletePod).
