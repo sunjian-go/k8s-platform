@@ -1,6 +1,8 @@
 package controller
 
-import "github.com/gin-gonic/gin"
+import (
+	"github.com/gin-gonic/gin"
+)
 
 var Router router
 
@@ -21,7 +23,7 @@ func (r *router) InitApiRouter(router *gin.Engine) {
 		GET("/api/corev1/getpodnum", Pod.GetNamespacePod).
 		//deployment路由
 		GET("/api/appsv1/getdeployments", Deployment.GetDeployments).
-		GET("/api/appsv1/detdeploymentdetail", Deployment.GetDeploymentDetail).
+		GET("/api/appsv1/getdeploymentdetail", Deployment.GetDeploymentDetail).
 		DELETE("/api/appsv1/deletedeployment", Deployment.DeleteDeployment).
 		PUT("/api/appsv1/scaledeployment", Deployment.ScaleDeployment).
 		POST("/api/appsv1/createdeployment", Deployment.CreateDeployment).

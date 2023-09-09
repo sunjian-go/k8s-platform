@@ -79,7 +79,6 @@ func (d *DataSelector) Filter() *DataSelector {
 	//若Name的传参不为空，则返回元素名中包含Name的所有元素
 	filterdList := []DataCell{}
 	for _, value := range d.GenericDataList {
-		//fmt.Println(value.GetName())
 		if !strings.Contains(value.GetName(), d.DataSelectQuery.FilterQuery.Name) {
 			continue
 		} else {
@@ -96,10 +95,10 @@ func (d *DataSelector) Filter() *DataSelector {
 // 分页
 // Paginate方法用于数组分页，根据Limit和Page的传参，返回一定范围的数据
 func (d *DataSelector) Paginate() *DataSelector {
-	//fmt.Println("分页前：", d.GenericDataList)
+	//fmt.Println("开始分页，limit为：", d.DataSelectQuery.PaginateQuery.Limit)
 	limit := d.DataSelectQuery.PaginateQuery.Limit //获取当前元素切片每页的数量
 	page := d.DataSelectQuery.PaginateQuery.Page   //获取当前元素切片的页数
-	//fmt.Println("分页信息 ", limit, page)
+	fmt.Println("分页信息 ", limit, page)
 	//验证参数合法，若参数不合法，则返回所有数据
 	if limit <= 0 || page <= 0 {
 		//fmt.Println("分页失败后：", d.GenericDataList)
@@ -107,19 +106,25 @@ func (d *DataSelector) Paginate() *DataSelector {
 	}
 	//定义取数范围的起始索引和结束索引：
 	//如果传入的limit数量大于等于deployment列表的长度，就把列表实际长度给limit,这时候page就肯定是1了，因为只有一页
+	//fmt.Println("列表长度为：", len(d.GenericDataList))
 	if limit >= len(d.GenericDataList) {
+
 		limit = len(d.GenericDataList)
 		page = 1
 	}
 	//起始索引值
 	startindex := limit * (page - 1)
-	//endIndex := limit*page - 1
+	fmt.Println("起始为：", startindex)
+	endIndex := 0
+	//endIndex不能减1，因为切片默认会减1
+	endIndex = limit * page
 	//处理最后一页，这时候就把endIndex由30改为25了
-	//if len(d.GenericDataList) < endIndex {
-	endIndex := len(d.GenericDataList)
-	//}
+	if len(d.GenericDataList) < endIndex {
+		endIndex = len(d.GenericDataList)
+	}
+	fmt.Println("起始：", startindex, " 结尾：", endIndex)
 	d.GenericDataList = d.GenericDataList[startindex:endIndex] //从下标为0的到下标为最后一个的元素赋值给元素切片
-	//fmt.Println("成功分页后：", d.GenericDataList[startindex:endIndex])
+	fmt.Println("成功分页后个数为：", len(d.GenericDataList))
 	return d
 }
 

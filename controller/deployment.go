@@ -30,7 +30,7 @@ func (d *deployment) GetDeployments(c *gin.Context) {
 	deployments, err := service.Deployment.GetDeployments(deploy.Name, deploy.Namespace, deploy.Limit, deploy.Page)
 	if err != nil {
 		c.JSON(400, gin.H{
-			"err":  "获取deployment详情失败",
+			"err":  "获取deployment列表失败",
 			"data": nil,
 		})
 		return
@@ -127,6 +127,8 @@ func (d *deployment) CreateDeployment(c *gin.Context) {
 		})
 		return
 	}
+	fmt.Println("前端数据为：", deployCreate)
+
 	err := service.Deployment.CreateDeployment(deployCreate)
 	if err != nil {
 		c.JSON(400, gin.H{

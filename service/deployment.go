@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
+	"fmt"
 	"github.com/wonderivan/logger"
 	appsv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
@@ -81,9 +82,11 @@ func (d *deployment) GetDeployments(filterName, namespace string, limit, page in
 		},
 	}
 	//过滤
+	//fmt.Println("过滤之前为：", filterName, selectorData.DataSelectQuery.FilterQuery.Name)
 	filtered := selectorData.Filter()
 	total := len(filtered.GenericDataList)
 	//排序分页
+	fmt.Println("传输入的limit: ", filtered.DataSelectQuery.PaginateQuery.Limit)
 	data := filtered.Sort().Paginate()
 	//将[]DataCell类型的deployment列表转为appsv1.deployment列表
 	deployments := d.fromCells(data.GenericDataList)
