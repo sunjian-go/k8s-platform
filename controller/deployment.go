@@ -97,14 +97,16 @@ func (d *deployment) ScaleDeployment(c *gin.Context) {
 	deploy := new(struct {
 		Name      string `form:"name" binding:"required"`
 		Namespace string `form:"namespace" binding:"required"`
-		Replca    int    `form:"replca" binding:"required"`
+		Replca    int    `form:"replca" `
 	})
+
 	if err := c.Bind(deploy); err != nil {
 		c.JSON(400, gin.H{
 			"err": "绑定数据失败",
 		})
 		return
 	}
+	//fmt.Println("获取的数据为：", deploy)
 	replca, err := service.Deployment.ScaleDeployment(deploy.Name, deploy.Namespace, deploy.Replca)
 	if err != nil {
 		c.JSON(400, gin.H{
