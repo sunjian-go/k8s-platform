@@ -126,7 +126,7 @@ func (p *pod) DeletePod(podName, namespace string) (err error) {
 }
 
 // 更新pod
-func (p *pod) UpdatePod(podName, namespace, content string) (err error) {
+func (p *pod) UpdatePod(namespace, content string) (err error) {
 	pod := &corev1.Pod{}
 	if err = json.Unmarshal([]byte(content), pod); err != nil {
 		logger.Error("反序列化失败: ", err.Error())
@@ -134,8 +134,8 @@ func (p *pod) UpdatePod(podName, namespace, content string) (err error) {
 	}
 	_, err = K8s.ClientSet.CoreV1().Pods(namespace).Update(context.TODO(), pod, metav1.UpdateOptions{})
 	if err != nil {
-		logger.Error("更新pod"+podName+"失败: ", err.Error())
-		return errors.New("更新pod" + podName + "失败: " + err.Error())
+		logger.Error("更新pod"+"失败: ", err.Error())
+		return errors.New("更新pod" + "失败: " + err.Error())
 	}
 	return nil
 }

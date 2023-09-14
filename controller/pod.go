@@ -24,9 +24,8 @@ type podDetail struct {
 	Namespace string `form:"namespace"`
 }
 type updatePodInfo struct {
-	Name      string `json:"name"`
-	Namespace string `json:"namespace"`
-	context   string `json:"context"`
+	Namespace string `json:"namespace" binding:"required"`
+	context   string `json:"context" binding:"required"`
 }
 type logPod struct {
 	Container string `form:"container"`
@@ -70,6 +69,7 @@ func (p *pod) GetPodDetail(c *gin.Context) {
 		})
 		return
 	}
+	fmt.Println("前端传过来为：", *pod)
 	targetPod, err := service.Pod.GetPodDetail(pod.Name, pod.Namespace)
 	if err != nil {
 		c.JSON(400, gin.H{
@@ -108,15 +108,16 @@ func (p *pod) DeletePod(c *gin.Context) {
 // 更新pod
 func (p *pod) UpdatePod(c *gin.Context) {
 	pod := new(updatePodInfo)
-	if err := c.ShouldBind(pod); err != nil {
+	if err := c.ShouldBindJSON(pod); err != nil {
 		c.JSON(400, gin.H{
 			"err": "绑定数据失败" + err.Error(),
 		})
 		return
 	}
-	if err := service.Pod.UpdatePod(pod.Name, pod.Namespace, pod.context); err != nil {
+	fmt.Println("获取到要更新的为：", *pod)
+	if err := service.Pod.UpdatePod(pod.Namespace, pod.context); err != nil {
 		c.JSON(400, gin.H{
-			"msg": "更新pod失败" + err.Error(),
+			"err": "更新pod失败" + err.Error(),
 		})
 		return
 	}
