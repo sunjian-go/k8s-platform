@@ -4,7 +4,7 @@ import "time"
 
 const (
 	ListenAddr     = "0.0.0.0:8999"
-	Kubeconfig     = "D:\\sunjian\\golang\\ncode\\k8s-conf\\config.txt"
+	Kubeconfig     = "E:\\mycode\\project\\k8s-platform\\k8sconf\\config.txt"
 	PodLogTailLine = 2000 //tail的日志行数 tail -n 2000
 
 	AdminUser   = "admin"
