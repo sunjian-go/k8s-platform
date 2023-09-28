@@ -150,6 +150,19 @@ func (p *pod) GetContainer(c *gin.Context) {
 	})
 }
 
+// 获取日志测试，通过ws协议接收到的
+func (p *pod) GetLog(c *gin.Context) {
+	container := c.Query("container")
+	pod_name := c.Query("pod_name")
+	namespace := c.Query("namespace")
+	fmt.Println("ws: ", container, pod_name, namespace)
+	err := service.Pod.GetPodLog(container, pod_name, namespace, c)
+	if err != nil {
+		fmt.Println(err)
+		return
+	}
+}
+
 // 获取容器日志
 func (p *pod) GetContainerLog(c *gin.Context) {
 	pod := new(logPod)
@@ -159,7 +172,7 @@ func (p *pod) GetContainerLog(c *gin.Context) {
 		})
 		return
 	}
-	log, err := service.Pod.GetPodLog(pod.Container, pod.Podname, pod.Namespace)
+	err := service.Pod.GetPodLog(pod.Container, pod.Podname, pod.Namespace, c)
 	if err != nil {
 		c.JSON(400, gin.H{
 			"err":  "获取日志失败：" + err.Error(),
@@ -169,7 +182,7 @@ func (p *pod) GetContainerLog(c *gin.Context) {
 	}
 	c.JSON(200, gin.H{
 		"msg":  "获取日志成功",
-		"data": log,
+		"data": nil,
 	})
 }
 

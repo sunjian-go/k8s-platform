@@ -82,6 +82,8 @@ func (r *router) InitApiRouter(router *gin.Engine) {
 		GET("/api/workflow/getworkflows", Workflow.GetWorkflows).
 		GET("/api/workflow/getbyid", Workflow.GetById).
 		DELETE("/api/workflow/delbyid/:id", Workflow.DelById).
-		POST("/api/workflow/createworkflow", Workflow.CreateWorkflow)
+		POST("/api/workflow/createworkflow", Workflow.CreateWorkflow).
+		//ws测试
+		GET("/api/getlogs", Pod.GetLog)
 
 }

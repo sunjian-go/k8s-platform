@@ -1,12 +1,12 @@
 package service
 
 import (
-	"bytes"
 	"context"
 	"encoding/json"
 	"errors"
+	"fmt"
+	"github.com/gin-gonic/gin"
 	"github.com/wonderivan/logger"
-	"io"
 	"k8s-platform/config"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -156,12 +156,19 @@ func (p *pod) GetContainer(podName, namespace string) (containers []string, err 
 }
 
 // 获取pod内容器日志
-func (p *pod) GetPodLog(containerName, podName, namespace string) (log string, err error) {
+func (p *pod) GetPodLog(containerName, podName, namespace string, c *gin.Context) (err error) {
+	//new一个TerminalSession类型的pty实例,用来向前端发送数据
+	pty, err := NewTerminalSession(c.Writer, c.Request, nil)
+	if err != nil {
+		logger.Error("get pty failed: %v\n", err)
+		return errors.New("get pty failed: %v\n" + err.Error())
+	}
 	//1.设置日志的配置，容器名，获取的内容的配置
 	lineLimit := int64(config.PodLogTailLine) //先将定义的行数转为int64位
 	option := &corev1.PodLogOptions{          //定义一个corev1.PodLogOptions指针并赋值
 		Container: containerName,
 		TailLines: &lineLimit,
+		Follow:    true,
 	}
 	//2.获取一个request实例
 	req := K8s.ClientSet.CoreV1().Pods(namespace).GetLogs(podName, option)
@@ -169,18 +176,35 @@ func (p *pod) GetPodLog(containerName, podName, namespace string) (log string, e
 	podLog, err := req.Stream(context.TODO())
 	if err != nil {
 		logger.Error(errors.New("获取podLog失败" + err.Error()))
-		return "", errors.New("获取podLog失败" + err.Error())
+		return errors.New("获取podLog失败" + err.Error())
 	}
-	defer podLog.Close() //关闭stream连接
+
+	defer func() {
+		defer podLog.Close() //关闭stream连接
+		pty.Close()          //关闭pty连接
+		fmt.Println("pty连接已关闭")
+	}()
 	//4.将response.body写入到缓冲区，目的是为了转换成string类型
-	buf := new(bytes.Buffer)
-	_, err = io.Copy(buf, podLog) //将得到的Log数据存在缓冲区
-	if err != nil {
-		logger.Error(errors.New("拷贝podLog失败" + err.Error()))
-		return "", errors.New("拷贝podLog失败" + err.Error())
+	buf := make([]byte, 4096)
+
+	//循环读取日志，并通过socket发送给前端
+	for {
+		size, err := podLog.Read(buf)
+		if size > 0 {
+			//fmt.Println("获取到日志，开始写入：", string(buf))
+			_, err := pty.Write(buf) //写入前端
+			//当报错的时候就是前端关闭了socket连接
+			if err != nil {
+				fmt.Println("pty写入报错" + err.Error())
+				break
+			}
+		}
+		if err != nil {
+			break
+		}
 	}
 	//5.转换数据返回
-	return buf.String(), nil
+	return nil
 }
 
 // 获取每个namespace中pod的数量
