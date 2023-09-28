@@ -25,7 +25,7 @@ type podDetail struct {
 }
 type updatePodInfo struct {
 	Namespace string `json:"namespace" binding:"required"`
-	context   string `json:"context" binding:"required"`
+	Context   string `json:"context" binding:"required"`
 }
 type logPod struct {
 	Container string `form:"container"`
@@ -115,7 +115,7 @@ func (p *pod) UpdatePod(c *gin.Context) {
 		return
 	}
 	fmt.Println("获取到要更新的为：", *pod)
-	if err := service.Pod.UpdatePod(pod.Namespace, pod.context); err != nil {
+	if err := service.Pod.UpdatePod(pod.Namespace, pod.Context); err != nil {
 		c.JSON(400, gin.H{
 			"err": "更新pod失败" + err.Error(),
 		})
