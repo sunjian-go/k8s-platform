@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"github.com/gin-gonic/gin"
 	"github.com/wonderivan/logger"
+	"io"
 	"k8s-platform/config"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -186,12 +187,11 @@ func (p *pod) GetPodLog(containerName, podName, namespace string, c *gin.Context
 	}()
 	//4.将response.body写入到缓冲区，目的是为了转换成string类型
 	buf := make([]byte, 4096)
-
 	//循环读取日志，并通过socket发送给前端
 	for {
 		size, err := podLog.Read(buf)
 		if size > 0 {
-			_, err := pty.Write(buf) //写入前端
+			_, err := pty.Write(buf[:size]) //写入前端
 			//当报错的时候就是前端关闭了socket连接
 			if err != nil {
 				fmt.Println("pty写入报错" + err.Error())
@@ -200,7 +200,10 @@ func (p *pod) GetPodLog(containerName, podName, namespace string, c *gin.Context
 			//fmt.Println("获取到日志，开始写入：", string(buf))
 		}
 		if err != nil {
-			break
+			if err == io.EOF {
+				break
+			}
+			return fmt.Errorf("read pod logs error: %v", err)
 		}
 	}
 	//5.转换数据返回
