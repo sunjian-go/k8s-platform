@@ -13,8 +13,8 @@ type daemonSet struct {
 // 获取daemonSet列表
 func (d *daemonSet) GetDaemonSets(c *gin.Context) {
 	daemonset := new(struct {
-		Name      string `form:"name" binding:"required"`
-		Namespace string `form:"namespace" binding:"required"`
+		Name      string `form:"name"`
+		Namespace string `form:"namespace"`
 		Limit     int    `form:"limit" binding:"required"`
 		Page      int    `form:"page" binding:"required"`
 	})

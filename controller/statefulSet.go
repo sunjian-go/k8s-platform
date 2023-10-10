@@ -14,8 +14,8 @@ type statefulSet struct {
 func (s *statefulSet) GetStatefulSets(c *gin.Context) {
 	//GET请求
 	statefulset := new(struct {
-		Name      string `form:"name" binding:"required"`
-		Namespace string `form:"namespace" binding:"required"`
+		Name      string `form:"name"` //因为名字可能不需要指定具体的，所以去掉required
+		Namespace string `form:"namespace"`
 		Limit     int    `form:"limit" binding:"required"`
 		Page      int    `form:"page" binding:"required"`
 	})
