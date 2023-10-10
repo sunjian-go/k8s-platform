@@ -235,3 +235,13 @@ func (p pvcCell) GetCreation() time.Time {
 func (p pvcCell) GetName() string {
 	return p.Name
 }
+
+// namespace
+type nsCell corev1.Namespace
+
+func (p nsCell) GetCreation() time.Time {
+	return p.CreationTimestamp.Time
+}
+func (p nsCell) GetName() string {
+	return p.Name
+}

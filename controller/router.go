@@ -45,6 +45,7 @@ func (r *router) InitApiRouter(router *gin.Engine) {
 		GET("/api/corev1/getnodedetail", Node.GetNodeDetail).
 		//namespace路由
 		GET("/api/corev1/getnamespaces", Namespace.GetNamespaces).
+		GET("/api/corev1/getnamespaceList", Namespace.GetnamespaceList).
 		GET("/api/corev1/getnamespaceDetail", Namespace.GetNamespaceDetail).
 		DELETE("/api/corev1/deletenamespace", Namespace.DeleteNamespace).
 		//PV路由
