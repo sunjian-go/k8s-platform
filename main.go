@@ -5,6 +5,7 @@ import (
 	"github.com/gin-gonic/gin"
 	"k8s-platform/config"
 	"k8s-platform/controller"
+	"k8s-platform/dao"
 	"k8s-platform/db"
 	"k8s-platform/middle"
 	"k8s-platform/service"
@@ -16,6 +17,13 @@ func main() {
 	service.K8s.Init()
 	//初始化mysql
 	db.Init()
+	colorsResp, _ := dao.Styles.GetColor()
+	if colorsResp.Background == "" || colorsResp.Color == "" {
+		//如果styles表里没数据就进行初始化
+		_ = dao.Styles.InitStyles()
+		fmt.Println("初始化styles表成功")
+	}
+	//_ = dao.Styles.UpdateColor("red", "green")
 	//初始化路由
 	r := gin.Default()
 	//r.Use(middle.JWTAuth()) //加载jwt中间件，用于token验证

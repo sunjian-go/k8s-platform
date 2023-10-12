@@ -2,6 +2,7 @@ package controller
 
 import (
 	"github.com/gin-gonic/gin"
+	"github.com/wonderivan/logger"
 	"k8s-platform/service"
 )
 
@@ -12,8 +13,21 @@ type pv struct {
 
 // 获取pv列表
 func (p *pv) GetPvs(c *gin.Context) {
-	pvs, err := service.Pv.GetPvs()
+	pvResp := new(struct {
+		Name  string `form:"name"`
+		Limit int    `form:"limit"`
+		Page  int    `form:"page"`
+	})
+	if err := c.Bind(pvResp); err != nil {
+		logger.Info("绑定数据失败: ", err.Error())
+		c.JSON(400, gin.H{
+			"err": "绑定数据失败: " + err.Error(),
+		})
+		return
+	}
+	pvs, err := service.Pv.GetPvs(pvResp.Name, pvResp.Limit, pvResp.Page)
 	if err != nil {
+		logger.Info(err.Error())
 		c.JSON(400, gin.H{
 			"err":  err.Error(),
 			"data": nil,

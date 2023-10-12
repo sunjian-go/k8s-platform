@@ -49,7 +49,9 @@ func Init() {
 	IsInit = true
 	logger.Info("连接数据库成功")
 	//建表
-	GORM.AutoMigrate(&model.WorkFlow{})
+	GORM.AutoMigrate(&model.WorkFlow{}) //workflow表
+	GORM.AutoMigrate(&model.Styles{})   //前端样式表
+
 }
 
 // db的关闭函数

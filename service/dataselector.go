@@ -226,6 +226,16 @@ func (s secretCell) GetName() string {
 	return s.Name
 }
 
+// pv
+type pvCell corev1.PersistentVolume
+
+func (p pvCell) GetCreation() time.Time {
+	return p.CreationTimestamp.Time
+}
+func (p pvCell) GetName() string {
+	return p.Name
+}
+
 // pvc
 type pvcCell corev1.PersistentVolumeClaim
 

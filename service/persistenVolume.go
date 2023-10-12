@@ -18,15 +18,58 @@ type pvResp struct {
 }
 
 // 获取pv列表
-func (p *pv) GetPvs() (pvresp *pvResp, err error) {
+//
+//	func (p *pv) GetPvs() (pvresp *pvResp, err error) {
+//		pvList, err := K8s.ClientSet.CoreV1().PersistentVolumes().List(context.TODO(), metav1.ListOptions{})
+//		if err != nil {
+//			logger.Error("获取pv列表失败: " + err.Error())
+//			return nil, errors.New("获取pv列表失败: " + err.Error())
+//		}
+//		return &pvResp{
+//			Pvs:   pvList.Items,
+//			Total: len(pvList.Items),
+//		}, nil
+//	}
+func (p *pv) toCell(pvs []corev1.PersistentVolume) []DataCell {
+	cells := make([]DataCell, len(pvs))
+	for i := range pvs {
+		cells[i] = pvCell(pvs[i])
+	}
+	return cells
+}
+
+func (p *pv) fromCells(cells []DataCell) []corev1.PersistentVolume {
+	pvs := make([]corev1.PersistentVolume, len(cells))
+	for i := range cells {
+		pvs[i] = corev1.PersistentVolume(cells[i].(pvCell))
+	}
+	return pvs
+}
+func (p *pv) GetPvs(pvName string, limit, page int) (pvresp *pvResp, err error) {
 	pvList, err := K8s.ClientSet.CoreV1().PersistentVolumes().List(context.TODO(), metav1.ListOptions{})
 	if err != nil {
 		logger.Error("获取pv列表失败: " + err.Error())
 		return nil, errors.New("获取pv列表失败: " + err.Error())
 	}
+	data := &DataSelector{
+		GenericDataList: p.toCell(pvList.Items),
+		DataSelectQuery: &DataSelectQuery{
+			FilterQuery: &FilterQuery{
+				Name: pvName,
+			},
+			PaginateQuery: &PaginateQuery{
+				Limit: limit,
+				Page:  page,
+			},
+		},
+	}
+	newdata := data.Filter()
+	total := len(newdata.GenericDataList)
+	pvs := p.fromCells(newdata.Sort().Paginate().GenericDataList)
+
 	return &pvResp{
-		Pvs:   pvList.Items,
-		Total: len(pvList.Items),
+		Pvs:   pvs,
+		Total: total,
 	}, nil
 }
 

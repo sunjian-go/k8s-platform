@@ -85,6 +85,9 @@ func (r *router) InitApiRouter(router *gin.Engine) {
 		DELETE("/api/workflow/delbyid/:id", Workflow.DelById).
 		POST("/api/workflow/createworkflow", Workflow.CreateWorkflow).
 		//ws测试
-		GET("/api/getlogs", Pod.GetLog)
+		GET("/api/getlogs", Pod.GetLog).
+		//前端设置背景色
+		GET("/getColor", Styles.GetColor).
+		PUT("/updateColor", Styles.UpdateColor)
 
 }

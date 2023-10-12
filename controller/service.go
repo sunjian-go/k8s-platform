@@ -14,10 +14,10 @@ type svc struct {
 func (s *svc) GetSvcs(c *gin.Context) {
 	//GET请求
 	svc := new(struct {
-		Name      string `form:"name" binding:"required"`
-		Namespace string `form:"namespace" binding:"required"`
-		Limit     int    `form:"limit" binding:"required"`
-		Page      int    `form:"page" binding:"required"`
+		Name      string `form:"name" `
+		Namespace string `form:"namespace" `
+		Limit     int    `form:"limit" `
+		Page      int    `form:"page" `
 	})
 	if err := c.Bind(svc); err != nil {
 		c.JSON(400, gin.H{

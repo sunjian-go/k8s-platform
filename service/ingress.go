@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
+	"fmt"
 	"github.com/wonderivan/logger"
 	Networkingv1 "k8s.io/api/networking/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -53,6 +54,7 @@ func (i *ingress) GetIngresses(ingName, namespace string, limit, page int) (ingR
 		logger.Error("获取ingress列表失败：" + err.Error())
 		return nil, errors.New("获取ingress列表失败：" + err.Error())
 	}
+
 	data := &DataSelector{
 		GenericDataList: i.toCell(ingList.Items),
 		DataSelectQuery: &DataSelectQuery{
@@ -68,6 +70,7 @@ func (i *ingress) GetIngresses(ingName, namespace string, limit, page int) (ingR
 	newdata := data.Filter()
 	total := len(newdata.GenericDataList)
 	ings := i.fromCells(newdata.Sort().Paginate().GenericDataList)
+	fmt.Println("获取到ing列表为：", ings)
 	return &IngResp{
 		Items: ings,
 		Total: total,
