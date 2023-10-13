@@ -72,9 +72,9 @@ func (s *svc) GetSvcDetail(c *gin.Context) {
 func (s *svc) CreateSvc(c *gin.Context) {
 	//POST请求
 	svc := new(service.ServiceCreate)
-	if err := c.ShouldBindJSON(svc); err != nil {
+	if err := c.ShouldBind(svc); err != nil {
 		c.JSON(400, gin.H{
-			"err": "绑定数据失败",
+			"err": "绑定数据失败：" + err.Error(),
 		})
 		return
 	}
@@ -93,12 +93,12 @@ func (s *svc) CreateSvc(c *gin.Context) {
 func (s *svc) DeleteSvc(c *gin.Context) {
 	//DELETE请求
 	svc := new(struct {
-		Name      string `json:"name" binding:"required"`
-		Namespace string `json:"namespace" binding:"required"`
+		Name      string `form:"name" binding:"required"`
+		Namespace string `form:"namespace" binding:"required"`
 	})
 	if err := c.Bind(svc); err != nil {
 		c.JSON(400, gin.H{
-			"err":  "绑定数据失败",
+			"err":  "绑定数据失败: " + err.Error(),
 			"data": nil,
 		})
 		return

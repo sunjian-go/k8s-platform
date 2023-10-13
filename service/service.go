@@ -146,14 +146,14 @@ func (s *service) CreateSvc(data *ServiceCreate) (err error) {
 // 更新Service
 func (s *service) UpdateSvc(namespace, content string) (err error) {
 	//创建一个svc类型的原生结构体
-	svc := new(corev1.Service)
+	svcontent := new(corev1.Service)
 	//解码到svc结构体
-	if err := json.Unmarshal([]byte(content), svc); err != nil {
+	if err := json.Unmarshal([]byte(content), svcontent); err != nil {
 		logger.Error("解码失败: " + err.Error())
 		return errors.New("解码失败: " + err.Error())
 	}
 	//更新
-	_, err = K8s.ClientSet.CoreV1().Services(namespace).Update(context.TODO(), svc, metav1.UpdateOptions{})
+	_, err = K8s.ClientSet.CoreV1().Services(namespace).Update(context.TODO(), svcontent, metav1.UpdateOptions{})
 	if err != nil {
 		logger.Error("更新svc失败: " + err.Error())
 		return errors.New("更新svc失败: " + err.Error())
