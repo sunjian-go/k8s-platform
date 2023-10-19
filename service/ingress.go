@@ -4,7 +4,6 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
-	"fmt"
 	"github.com/wonderivan/logger"
 	Networkingv1 "k8s.io/api/networking/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -70,7 +69,7 @@ func (i *ingress) GetIngresses(ingName, namespace string, limit, page int) (ingR
 	newdata := data.Filter()
 	total := len(newdata.GenericDataList)
 	ings := i.fromCells(newdata.Sort().Paginate().GenericDataList)
-	fmt.Println("获取到ing列表为：", ings)
+	//fmt.Println("获取到ing列表为：", ings)
 	return &IngResp{
 		Items: ings,
 		Total: total,
@@ -156,6 +155,7 @@ func (i *ingress) DeleteIngress(ingName, namespace string) (err error) {
 
 // 更新Ingress
 func (i *ingress) UpdateIngress(namespace, content string) (err error) {
+	//logger.Info("需要更新的数据为：" + namespace + ":" + content)
 	ing := new(Networkingv1.Ingress)
 	if err := json.Unmarshal([]byte(content), ing); err != nil {
 		logger.Error("解码失败: " + err.Error())

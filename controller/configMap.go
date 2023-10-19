@@ -40,7 +40,7 @@ func (c *configMap) GetConfigMaps(ctx *gin.Context) {
 }
 
 // 获取cm详情
-func (c *configMap) GetConfigDetail(ctx *gin.Context) {
+func (c *configMap) GetConfigMapDetail(ctx *gin.Context) {
 	cm := new(struct {
 		Name      string `form:"name" binding:"required"`
 		Namespace string `form:"namespace" binding:"required"`

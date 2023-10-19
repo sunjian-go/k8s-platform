@@ -60,7 +60,7 @@ func (i *ingress) GetIngressDetail(c *gin.Context) {
 		})
 		return
 	}
-	c.JSON(400, gin.H{
+	c.JSON(200, gin.H{
 		"msg":  "获取ingress详情成功",
 		"data": ingress,
 	})
@@ -69,7 +69,7 @@ func (i *ingress) GetIngressDetail(c *gin.Context) {
 // 创建Ingress
 func (i *ingress) CreateIngress(c *gin.Context) {
 	ing := service.IngressCreate{}
-	if err := c.ShouldBindJSON(ing); err != nil {
+	if err := c.ShouldBind(&ing); err != nil {
 		c.JSON(400, gin.H{
 			"err": "绑定数据失败: " + err.Error(),
 		})
@@ -114,7 +114,7 @@ func (i *ingress) DeleteIngress(c *gin.Context) {
 func (i *ingress) UpdateIngress(c *gin.Context) {
 	ing := new(struct {
 		Namespace string `json:"namespace"`
-		Ceontent  string `json:"ceontent"`
+		Content   string `json:"content"`
 	})
 	if err := c.ShouldBindJSON(ing); err != nil {
 		c.JSON(400, gin.H{
@@ -122,7 +122,7 @@ func (i *ingress) UpdateIngress(c *gin.Context) {
 		})
 		return
 	}
-	if err := service.Ingress.UpdateIngress(ing.Namespace, ing.Ceontent); err != nil {
+	if err := service.Ingress.UpdateIngress(ing.Namespace, ing.Content); err != nil {
 		c.JSON(400, gin.H{
 			"err": err.Error(),
 		})

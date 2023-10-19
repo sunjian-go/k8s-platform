@@ -66,7 +66,7 @@ func (r *router) InitApiRouter(router *gin.Engine) {
 		PUT("/api/networking/updateing", Ingress.UpdateIngress).
 		//configMap路由
 		GET("/api/corev1/getcms", ConfigMap.GetConfigMaps).
-		GET("/api/corev1/getcmdetail", ConfigMap.GetConfigDetail).
+		GET("/api/corev1/getcmdetail", ConfigMap.GetConfigMapDetail).
 		DELETE("/api/corev1/deletecm", ConfigMap.DeleteConfigMap).
 		PUT("/api/corev1/updatecm", ConfigMap.UpdateConfigMap).
 		//secret路由
