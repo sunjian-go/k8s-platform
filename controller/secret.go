@@ -101,7 +101,7 @@ func (s *secret) UpdateSecret(c *gin.Context) {
 		})
 	}
 	if err := service.Secret.UpdateSecret(secret.Namespace, secret.Content); err != nil {
-		c.JSON(200, gin.H{
+		c.JSON(400, gin.H{
 			"err": err.Error(),
 		})
 		return
