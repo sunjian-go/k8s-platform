@@ -103,7 +103,7 @@ func (p *pvc) UpdatePvc(c *gin.Context) {
 	}
 	if err := service.Pvc.UpdatePvc(pvc.Namespace, pvc.Content); err != nil {
 		c.JSON(400, gin.H{
-			"err": err.Error(),
+			"err": "更新pvc失败：" + err.Error(),
 		})
 		return
 	}
