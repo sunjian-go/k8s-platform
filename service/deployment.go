@@ -22,8 +22,8 @@ type deployment struct {
 
 // 定义获取每个namespace中deployment的数量
 type DeploysNp struct {
-	Namespace string
-	Total     int
+	Namespace string `json:"namespace"`
+	DeployNum int    `json:"deployNum"`
 }
 
 // 定义列表的返回内容，Items是deployment元素列表，Total为deployment元素数量
@@ -301,14 +301,19 @@ func (d *deployment) GetDeploymentNumPerNp() (deploysNps []*DeploysNp, err error
 		logger.Error("获取namespace列表失败：" + err.Error())
 		return nil, errors.New("获取namespace列表失败：" + err.Error())
 	}
+	var num = 0
 	for _, namespace := range namespaceList.Items {
+		if num > 10 {
+			break
+		}
 		deployments, err := K8s.ClientSet.AppsV1().Deployments(namespace.Name).List(context.TODO(), metav1.ListOptions{})
 		if err != nil {
 			logger.Error("获取deployment列表失败：" + err.Error())
 			return nil, errors.New("获取deployment列表失败：" + err.Error())
 		}
-		deploysNp := &DeploysNp{Namespace: namespace.Name, Total: len(deployments.Items)}
+		deploysNp := &DeploysNp{Namespace: namespace.Name, DeployNum: len(deployments.Items)}
 		deploysNps = append(deploysNps, deploysNp)
+		num = num + 1
 	}
 	return deploysNps, nil
 

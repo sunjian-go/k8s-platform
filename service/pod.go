@@ -25,8 +25,8 @@ type PodsResp struct {
 	Total int          `json:"total"`
 }
 type PodsNp struct {
-	Namespace string
-	PodNum    int
+	Namespace string `json:"namespace"`
+	PodNum    int    `json:"podNum"`
 }
 
 // 定义PodsNp类型，用于返回namespace中pod的数量
@@ -218,8 +218,13 @@ func (p *pod) GetNamespacePod() (podsNps []*PodsNp, err error) {
 		logger.Error("获取namespace信息失败：" + err.Error())
 		return nil, errors.New("获取namespace信息失败：" + err.Error())
 	}
+	//测试只获取前10个命名空间的数据
+	var num = 0
 	//获取pod列表
 	for _, namespace := range namespaceList.Items {
+		if num > 10 {
+			break
+		}
 		podList, err := K8s.ClientSet.CoreV1().Pods(namespace.Name).List(context.TODO(), metav1.ListOptions{})
 		if err != nil {
 			logger.Error("获取pod信息失败：" + err.Error())
@@ -232,6 +237,7 @@ func (p *pod) GetNamespacePod() (podsNps []*PodsNp, err error) {
 		}
 		//添加到podsNps数组中
 		podsNps = append(podsNps, podsnp)
+		num = num + 1
 	}
 	return podsNps, nil
 }
