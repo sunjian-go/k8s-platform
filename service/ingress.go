@@ -102,6 +102,7 @@ func (i *ingress) CreateIngress(data *IngressCreate) (err error) {
 	}
 	//第一层for循环是将host组装成Networkingv1.IngressRule类型的对象
 	// 一个host对应一个ingressrule，每个ingressrule中包含一个host和多个path
+	//value就是ing的规则数组
 	for key, value := range data.Hosts {
 		ir := Networkingv1.IngressRule{
 			Host: key,
@@ -111,13 +112,14 @@ func (i *ingress) CreateIngress(data *IngressCreate) (err error) {
 			},
 		}
 		//第二层for循环是将path组装成nwv1.HTTPIngressPath类型的对象
+		//httppath就是ing规则数组中的每个规则map
 		for _, httppath := range value {
 			hip := Networkingv1.HTTPIngressPath{
 				Path:     httppath.Path,
 				PathType: &httppath.PathType,
 				Backend: Networkingv1.IngressBackend{
 					Service: &Networkingv1.IngressServiceBackend{
-						Name: httppath.ServiceName,
+						Name: getServiceName(httppath.ServiceName),
 						Port: Networkingv1.ServiceBackendPort{
 							Number: httppath.ServicePort,
 						},

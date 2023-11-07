@@ -1,6 +1,7 @@
 package service
 
 import (
+	"fmt"
 	"k8s-platform/dao"
 	"k8s-platform/model"
 )
@@ -50,6 +51,8 @@ func (w *workflow) GetById(id int) (data *model.WorkFlow, err error) {
 // 创建workflow
 // workflow的类型分为三种，ClusterIP、NodePort、Ingress
 func (w *workflow) CreateWorkflow(data *WorkflowCreate) (err error) {
+
+	fmt.Println("准备创建工作流为：", data.Label)
 	//若workflow不是ingress类型，传入空字符串即可
 	var ingressName string
 	//为了判断是否需要新增ingress
@@ -95,6 +98,7 @@ func createWorkflowResp(data *WorkflowCreate) (err error) {
 		HealthCheck:   data.HealthCheck,
 		HealthPath:    data.HealthPath,
 	}
+	fmt.Println("dc==================", dc.Img)
 	err = Deployment.CreateDeployment(dc)
 	if err != nil {
 		return err

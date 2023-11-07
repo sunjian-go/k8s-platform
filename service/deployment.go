@@ -138,6 +138,7 @@ func (d *deployment) ScaleDeployment(deploymentName, namespace string, scaleNum 
 // 创建deployment,接收DeployCreate对象
 func (d *deployment) CreateDeployment(deployData *DeployCreate) (err error) {
 	//将deployData中的数据组装成appsv1.Deployment对象
+	fmt.Println("************************", *deployData, "资源限制为：", deployData.Cpu, deployData.Mem)
 	deployment := &appsv1.Deployment{
 		//ObjectMeta中定义资源名、命名空间以及标签
 		ObjectMeta: metav1.ObjectMeta{
@@ -180,14 +181,16 @@ func (d *deployment) CreateDeployment(deployData *DeployCreate) (err error) {
 	}
 	//判断是否打开健康检查功能，若打开，则定义ReadinessProbe和LivenessProbe
 	if deployData.HealthCheck {
-		//设置第一个容器的ReadinessProbe，因为我们pod中只有一个容器，所以直接使用index 0即可
+		//设置容器的ReadinessProbe
 		//若pod中有多个容器，则这里需要使用for循环去定义了
 		for _, container := range deployment.Spec.Template.Spec.Containers {
-			//deployment.Spec.Template.Spec.Containers[0].ReadinessProbe = &corev1.Probe{
 			container.ReadinessProbe = &corev1.Probe{
 				ProbeHandler: corev1.ProbeHandler{
 					HTTPGet: &corev1.HTTPGetAction{
 						Path: deployData.HealthPath,
+						//intstr.IntOrString的作用是端口可以定义为整型，也可以定义为字符串
+						//Type=0则表示表示该结构体实例内的数据为整型，转json时只使用IntVal的数据
+						//Type=1则表示表示该结构体实例内的数据为字符串，转json时只使用StrVal的数据
 						Port: intstr.IntOrString{
 							Type:   0,
 							IntVal: deployData.ContainerPort,
@@ -201,7 +204,6 @@ func (d *deployment) CreateDeployment(deployData *DeployCreate) (err error) {
 				//执行间隔
 				PeriodSeconds: 5,
 			}
-			//deployment.Spec.Template.Spec.Containers[0].LivenessProbe = &corev1.Probe{
 			container.LivenessProbe = &corev1.Probe{
 				ProbeHandler: corev1.ProbeHandler{
 					HTTPGet: &corev1.HTTPGetAction{
@@ -216,19 +218,23 @@ func (d *deployment) CreateDeployment(deployData *DeployCreate) (err error) {
 				TimeoutSeconds:      5,
 				PeriodSeconds:       5,
 			}
-			//定义容器的limit和request资源
-			//deployment.Spec.Template.Spec.Containers[0].Resources.Limits = map[corev1.ResourceName]resource.Quantity{
-			container.Resources.Limits = map[corev1.ResourceName]resource.Quantity{
-				corev1.ResourceCPU:    resource.MustParse(deployData.Cpu),
-				corev1.ResourceMemory: resource.MustParse(deployData.Mem),
-			}
-			//deployment.Spec.Template.Spec.Containers[0].Resources.Requests = map[corev1.ResourceName]resource.Quantity{
-			container.Resources.Requests = map[corev1.ResourceName]resource.Quantity{
-				corev1.ResourceCPU:    resource.MustParse(deployData.Cpu),
-				corev1.ResourceMemory: resource.MustParse(deployData.Mem),
-			}
 		}
 	}
+	//定义容器的limit和request资源
+	for _, container := range deployment.Spec.Template.Spec.Containers {
+		container.Resources.Limits = map[corev1.ResourceName]resource.Quantity{
+			corev1.ResourceCPU:    resource.MustParse(deployData.Cpu),
+			corev1.ResourceMemory: resource.MustParse(deployData.Mem),
+		}
+		container.Resources.Requests = map[corev1.ResourceName]resource.Quantity{
+			corev1.ResourceCPU:    resource.MustParse(deployData.Cpu),
+			corev1.ResourceMemory: resource.MustParse(deployData.Mem),
+		}
+	}
+	for _, val := range deployment.Spec.Template.Spec.Containers {
+		fmt.Println("开始创建deployment资源：", val)
+	}
+
 	//调用sdk创建deployment
 	_, err = K8s.ClientSet.AppsV1().Deployments(deployment.Namespace).Create(context.TODO(), deployment, metav1.CreateOptions{})
 	if err != nil {

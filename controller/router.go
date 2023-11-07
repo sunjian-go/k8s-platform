@@ -82,7 +82,7 @@ func (r *router) InitApiRouter(router *gin.Engine) {
 		//workflow路由
 		GET("/api/workflow/getworkflows", Workflow.GetWorkflows).
 		GET("/api/workflow/getbyid", Workflow.GetById).
-		DELETE("/api/workflow/delbyid/:id", Workflow.DelById).
+		DELETE("/api/workflow/delbyid/", Workflow.DelById).
 		POST("/api/workflow/createworkflow", Workflow.CreateWorkflow).
 		//resource路由
 		GET("/api/resources", Resources.GetAllResources).

@@ -62,12 +62,13 @@ func (w *workflow) GetById(c *gin.Context) {
 // 创建workflow
 func (w *workflow) CreateWorkflow(c *gin.Context) {
 	workcreate := new(service.WorkflowCreate)
-	if err := c.ShouldBindJSON(workcreate); err != nil {
+	if err := c.ShouldBind(workcreate); err != nil {
 		c.JSON(400, gin.H{
 			"err": "绑定数据失败: " + err.Error(),
 		})
 		return
 	}
+
 	err := service.Workflow.CreateWorkflow(workcreate)
 	if err != nil {
 		c.JSON(400, gin.H{
@@ -82,7 +83,7 @@ func (w *workflow) CreateWorkflow(c *gin.Context) {
 
 // 删除workflow
 func (w *workflow) DelById(c *gin.Context) {
-	id := c.Param("id")
+	id := c.Query("id")
 	idd, _ := strconv.Atoi(id)
 	fmt.Println("id=", id, "   idd=", idd)
 	if err := service.Workflow.DelById(idd); err != nil {
