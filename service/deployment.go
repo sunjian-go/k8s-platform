@@ -223,6 +223,8 @@ func (d *deployment) CreateDeployment(deployData *DeployCreate) (err error) {
 	//定义容器的limit和request资源
 	for _, container := range deployment.Spec.Template.Spec.Containers {
 		container.Resources.Limits = map[corev1.ResourceName]resource.Quantity{
+			//corev1.ResourceCPU:    resource.MustParse(deployData.Cpu),
+			//corev1.ResourceMemory: resource.MustParse(deployData.Mem),
 			corev1.ResourceCPU:    resource.MustParse(deployData.Cpu),
 			corev1.ResourceMemory: resource.MustParse(deployData.Mem),
 		}
@@ -230,17 +232,19 @@ func (d *deployment) CreateDeployment(deployData *DeployCreate) (err error) {
 			corev1.ResourceCPU:    resource.MustParse(deployData.Cpu),
 			corev1.ResourceMemory: resource.MustParse(deployData.Mem),
 		}
+		fmt.Println("赋值完后的资源数据为：", container.Resources.Limits, container.Resources.Requests)
 	}
-	for _, val := range deployment.Spec.Template.Spec.Containers {
-		fmt.Println("开始创建deployment资源：", val)
+	for _, continerr := range deployment.Spec.Template.Spec.Containers {
+		fmt.Println("deployment限制资源：", continerr.Resources.Limits)
+		fmt.Println("deployment请求资源：", continerr.Resources.Requests)
 	}
 
 	//调用sdk创建deployment
-	_, err = K8s.ClientSet.AppsV1().Deployments(deployment.Namespace).Create(context.TODO(), deployment, metav1.CreateOptions{})
-	if err != nil {
-		logger.Error("创建deployment失败: " + err.Error())
-		return errors.New("创建deployment失败: " + err.Error())
-	}
+	//_, err = K8s.ClientSet.AppsV1().Deployments(deployment.Namespace).Create(context.TODO(), deployment, metav1.CreateOptions{})
+	//if err != nil {
+	//	logger.Error("创建deployment失败: " + err.Error())
+	//	return errors.New("创建deployment失败: " + err.Error())
+	//}
 	return nil
 }
 
