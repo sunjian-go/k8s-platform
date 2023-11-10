@@ -183,8 +183,8 @@ func (d *deployment) CreateDeployment(deployData *DeployCreate) (err error) {
 	if deployData.HealthCheck {
 		//设置容器的ReadinessProbe
 		//若pod中有多个容器，则这里需要使用for循环去定义了
-		for _, container := range deployment.Spec.Template.Spec.Containers {
-			container.ReadinessProbe = &corev1.Probe{
+		for i, _ := range deployment.Spec.Template.Spec.Containers {
+			deployment.Spec.Template.Spec.Containers[i].ReadinessProbe = &corev1.Probe{
 				ProbeHandler: corev1.ProbeHandler{
 					HTTPGet: &corev1.HTTPGetAction{
 						Path: deployData.HealthPath,
@@ -204,7 +204,7 @@ func (d *deployment) CreateDeployment(deployData *DeployCreate) (err error) {
 				//执行间隔
 				PeriodSeconds: 5,
 			}
-			container.LivenessProbe = &corev1.Probe{
+			deployment.Spec.Template.Spec.Containers[i].LivenessProbe = &corev1.Probe{
 				ProbeHandler: corev1.ProbeHandler{
 					HTTPGet: &corev1.HTTPGetAction{
 						Path: deployData.HealthPath,
@@ -220,31 +220,32 @@ func (d *deployment) CreateDeployment(deployData *DeployCreate) (err error) {
 			}
 		}
 	}
-	//定义容器的limit和request资源
-	for _, container := range deployment.Spec.Template.Spec.Containers {
-		container.Resources.Limits = map[corev1.ResourceName]resource.Quantity{
-			//corev1.ResourceCPU:    resource.MustParse(deployData.Cpu),
-			//corev1.ResourceMemory: resource.MustParse(deployData.Mem),
-			corev1.ResourceCPU:    resource.MustParse(deployData.Cpu),
-			corev1.ResourceMemory: resource.MustParse(deployData.Mem),
-		}
-		container.Resources.Requests = map[corev1.ResourceName]resource.Quantity{
-			corev1.ResourceCPU:    resource.MustParse(deployData.Cpu),
-			corev1.ResourceMemory: resource.MustParse(deployData.Mem),
-		}
-		fmt.Println("赋值完后的资源数据为：", container.Resources.Limits, container.Resources.Requests)
-	}
-	for _, continerr := range deployment.Spec.Template.Spec.Containers {
-		fmt.Println("deployment限制资源：", continerr.Resources.Limits)
-		fmt.Println("deployment请求资源：", continerr.Resources.Requests)
-	}
+	//当cpu和mem值不为空的时候，才去配置资源限制
+	if deployData.Mem != "" && deployData.Cpu != "" {
+		for i, _ := range deployment.Spec.Template.Spec.Containers {
+			//定义容器的limit和request资源: 设置 CPU 和内存的值
+			deployment.Spec.Template.Spec.Containers[i].Resources.Limits =
 
+				map[corev1.ResourceName]resource.Quantity{
+					corev1.ResourceCPU:    resource.MustParse(deployData.Cpu),
+					corev1.ResourceMemory: resource.MustParse(deployData.Mem),
+				}
+			deployment.Spec.Template.Spec.Containers[i].Resources.Requests =
+
+				map[corev1.ResourceName]resource.Quantity{
+					corev1.ResourceCPU:    resource.MustParse(deployData.Cpu),
+					corev1.ResourceMemory: resource.MustParse(deployData.Mem),
+				}
+
+		}
+	}
+	fmt.Println("创建之前：", deployment)
 	//调用sdk创建deployment
-	//_, err = K8s.ClientSet.AppsV1().Deployments(deployment.Namespace).Create(context.TODO(), deployment, metav1.CreateOptions{})
-	//if err != nil {
-	//	logger.Error("创建deployment失败: " + err.Error())
-	//	return errors.New("创建deployment失败: " + err.Error())
-	//}
+	_, err = K8s.ClientSet.AppsV1().Deployments(deployment.Namespace).Create(context.TODO(), deployment, metav1.CreateOptions{})
+	if err != nil {
+		logger.Error("创建deployment失败: " + err.Error())
+		return errors.New("创建deployment失败: " + err.Error())
+	}
 	return nil
 }
 

@@ -1,6 +1,7 @@
 package middle
 
 import (
+	"fmt"
 	"github.com/gin-gonic/gin"
 	"k8s-platform/utils"
 )
@@ -9,13 +10,17 @@ import (
 func JWTAuth() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		//对登录接口放行,如果获取的URL是登陆路由就直接放行
-		if len(c.Request.URL.String()) >= 10 && c.Request.URL.String()[0:10] == "/api/login" {
+		fmt.Println("获取的URL为：", c.Request.URL.String())
+		//if len(c.Request.URL.String()) >= 5 && c.Request.URL.String()[0:5] == "/login" {
+		if c.Request.URL.String() == "/login" {
 			c.Next()
 		} else {
 			//如果不是登录路由就需要进行token验证
 			//1.获取Header中的Authorization
 			token := c.Request.Header.Get("Authorization")
+			fmt.Println("获取到token为：", token)
 			if token == "" {
+				fmt.Println("请求未携带token，无权限访问")
 				c.JSON(400, gin.H{
 					"msg":  "请求未携带token，无权限访问",
 					"data": nil,
@@ -26,11 +31,17 @@ func JWTAuth() gin.HandlerFunc {
 			// 2.parseToken 解析token包含的信息
 			claims, err := utils.JWTToken.ParseToken(token)
 			if err != nil {
+				rdata := struct {
+					Code int    `json:"code"`
+					Data string `json:"data"`
+				}{}
+				rdata.Code = 10086
+				rdata.Data = ""
 				//token延期错误
 				if err.Error() == "TokenExpired" {
 					c.JSON(400, gin.H{
 						"msg":  "授权已过期",
-						"data": nil,
+						"data": rdata,
 					})
 					c.Abort()
 					return
@@ -38,7 +49,7 @@ func JWTAuth() gin.HandlerFunc {
 				//其他解析错误
 				c.JSON(400, gin.H{
 					"msg":  err.Error(),
-					"data": nil,
+					"data": rdata,
 				})
 				c.Abort()
 				return

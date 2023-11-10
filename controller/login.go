@@ -1,6 +1,7 @@
 package controller
 
 import (
+	"fmt"
 	"github.com/gin-gonic/gin"
 	"k8s-platform/service"
 )
@@ -14,17 +15,20 @@ func (l *login) Login(c *gin.Context) {
 	user := new(service.User)
 	if err := c.ShouldBind(user); err != nil {
 		c.JSON(400, gin.H{
-			"msg": "数据绑定失败：" + err.Error(),
+			"err": "数据绑定失败：" + err.Error(),
 		})
 		return
 	}
-	if err := service.Login.Login(user); err != nil {
+	fmt.Println("客户端登录：", user.Username, user.Password)
+	token, err := service.Login.Login(user)
+	if err != nil {
 		c.JSON(400, gin.H{
-			"msg": err.Error(),
+			"err": err.Error(),
 		})
 		return
 	}
 	c.JSON(200, gin.H{
-		"msg": "登录成功",
+		"msg":   "登录成功",
+		"token": token,
 	})
 }

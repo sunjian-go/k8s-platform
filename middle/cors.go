@@ -8,11 +8,11 @@ import (
 //处理跨域请求,支持options访问
 
 func Cors() gin.HandlerFunc {
-
 	return func(c *gin.Context) {
 		//获取请求方法
 		method := c.Request.Method
 		//添加跨域响应头
+		//c.Header('Access-Control-Allow-Origin', 'http://localhost:8090')
 		c.Header("Access-Control-Allow-Origin", "*")                                       // 设置允许跨域请求的源，使用*表示允许所有域名访问
 		c.Header("Content-Type", "application/json, text/plain, */*, charset=UTF-8")       // 设置响应头部的Content-Type为application/json
 		c.Header("Access-Control-Max-Age", "86400")                                        // 设置OPTIONS预检请求的缓存时间，单位为秒
