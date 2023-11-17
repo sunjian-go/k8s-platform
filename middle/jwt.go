@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"github.com/gin-gonic/gin"
 	"k8s-platform/utils"
+	"strings"
 )
 
 // JWTAuth 中间件，检查token
@@ -11,8 +12,7 @@ func JWTAuth() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		//对登录接口放行,如果获取的URL是登陆路由就直接放行
 		fmt.Println("获取的URL为：", c.Request.URL.String())
-		//if len(c.Request.URL.String()) >= 5 && c.Request.URL.String()[0:5] == "/login" {
-		if c.Request.URL.String() == "/login" {
+		if c.Request.URL.String() == "/api/login" || strings.Contains(c.Request.URL.String(), "getlogs") {
 			c.Next()
 		} else {
 			//如果不是登录路由就需要进行token验证

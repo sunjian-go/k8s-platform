@@ -7,6 +7,7 @@ import (
 	"github.com/wonderivan/logger"
 	"k8s-platform/config"
 	"k8s-platform/model"
+	"strconv"
 	"time"
 )
 
@@ -17,7 +18,7 @@ var (
 )
 
 // db的初始化函数，与数据库建立连接
-func Init() {
+func Init(kubeconf map[string]string) {
 	//判断是否已经初始化了
 	if IsInit {
 		return
@@ -25,14 +26,20 @@ func Init() {
 	//组装连接配置
 	//parseTime是查询结果是否自动解析为时间
 	//loc是Mysql的时区设置
+	port, err := strconv.Atoi(kubeconf["dbPort"])
+	if err != nil {
+		fmt.Println("kubeconf[\"dbPort\"]转换失败:", err)
+		return
+	}
 	dsn := fmt.Sprintf("%s:%s@tcp(%s:%d)/%s?charset=utf8&parseTime=True&loc=Local",
-		config.DbUser,
-		config.DbPwd,
-		config.DbHost,
-		config.DbPort,
-		config.DbName)
+		kubeconf["dbUser"],
+		kubeconf["dbPwd"],
+		kubeconf["dbhost"],
+		port,
+		kubeconf["dbName"])
 	//与数据库建立连接，生成一个*gorm.DB类型的对象
-	GORM, err = gorm.Open(config.DbType, dsn)
+	GORM, err = gorm.Open(kubeconf["dbType"], dsn)
+	fmt.Println("数据库连接信息为：", dsn)
 	if err != nil {
 		panic("数据库连接失败: " + err.Error())
 	}

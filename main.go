@@ -15,8 +15,15 @@ import (
 func main() {
 	//初始化k8s client
 	service.K8s.Init()
+
+	//获取配置文件中的mysql地址
+	kubeconf, err := service.Conf.ReadConfFunc()
+	if err != nil {
+		fmt.Println(err.Error())
+		return
+	}
 	//初始化mysql
-	db.Init()
+	db.Init(kubeconf)
 	colorsResp, _ := dao.Styles.GetColor()
 	if colorsResp.Background == "" || colorsResp.Color == "" {
 		//如果styles表里没数据就进行初始化

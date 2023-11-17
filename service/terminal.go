@@ -37,6 +37,7 @@ func (t *terminal) WsHandler(w http.ResponseWriter, r *http.Request) {
 	namespace := r.Form.Get("namespace")
 	podName := r.Form.Get("pod_name")
 	containerName := r.Form.Get("container_name")
+	bashType := r.Form.Get("bashType")
 	logger.Info("exec pod: %s, container: %s, namespace: %s\n", podName, containerName, namespace)
 
 	//创建一个TerminalSession类型的pty实例,用于向websocket读写信息
@@ -65,7 +66,7 @@ func (t *terminal) WsHandler(w http.ResponseWriter, r *http.Request) {
 		SubResource("exec").
 		VersionedParams(&v1.PodExecOptions{
 			Container: containerName,
-			Command:   []string{"/bin/bash"},
+			Command:   []string{bashType},
 			Stdin:     true,
 			Stdout:    true,
 			Stderr:    true,

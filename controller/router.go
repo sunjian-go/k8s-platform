@@ -13,7 +13,7 @@ func (r *router) InitApiRouter(router *gin.Engine) {
 
 	router.
 		//pod路由
-		POST("/login", Login.Login).
+		POST("/api/login", Login.Login).
 		GET("/api/corev1/getpods", Pod.GetPods).
 		GET("/api/corev1/podetail", Pod.GetPodDetail).
 		DELETE("/api/corev1/deletepod", Pod.DeletePod).
@@ -82,14 +82,14 @@ func (r *router) InitApiRouter(router *gin.Engine) {
 		//workflow路由
 		GET("/api/workflow/getworkflows", Workflow.GetWorkflows).
 		GET("/api/workflow/getbyid", Workflow.GetById).
-		DELETE("/api/workflow/delbyid/", Workflow.DelById).
+		DELETE("/api/workflow/delbyid", Workflow.DelById).
 		POST("/api/workflow/createworkflow", Workflow.CreateWorkflow).
 		//resource路由
 		GET("/api/resources", Resources.GetAllResources).
-		//ws测试
+		//ws获取日志
 		GET("/api/getlogs", Pod.GetLog).
 		//前端设置背景色
-		GET("/getColor", Styles.GetColor).
-		PUT("/updateColor", Styles.UpdateColor)
+		GET("/api/getColor", Styles.GetColor).
+		PUT("/api/updateColor", Styles.UpdateColor)
 
 }

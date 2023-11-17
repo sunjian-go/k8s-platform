@@ -20,15 +20,15 @@ type User struct {
 	Password string `json:"password"`
 }
 
-func (l *login) Login(adminuser *User) (tok string, err error) {
+func (l *login) Login(adminuser *User) (string, map[string]string, error) {
 	if adminuser.Username != "" && adminuser.Password != "" {
 		if adminuser.Username != config.AdminUser || adminuser.Password != config.AdminPasswd {
 			logger.Error("username or password is wrong...")
-			return "", errors.New("username or password is wrong")
+			return "", nil, errors.New("username or password is wrong")
 		}
 	} else {
 		logger.Error("username or password not is null...")
-		return "", errors.New("username or password not is null")
+		return "", nil, errors.New("username or password not is null")
 	}
 	//验证账密通过后，生成token
 	// 定义加密因子
@@ -37,7 +37,7 @@ func (l *login) Login(adminuser *User) (tok string, err error) {
 	token := jwt.New(jwt.SigningMethodHS256)
 	// 设置Token的Claim(声明)，这是您自定义的数据
 	claims := token.Claims.(jwt.MapClaims)
-	claims["exp"] = time.Now().Add(time.Hour * 1 / 60 / 2).Unix() // 设置Token过期时间（1小时）
+	claims["exp"] = time.Now().Add(time.Hour * 1 / 2).Unix() // 设置Token过期时间（半小时）
 	claims["user_id"] = "1234567"
 	claims["username"] = adminuser.Username
 
@@ -45,8 +45,13 @@ func (l *login) Login(adminuser *User) (tok string, err error) {
 	tokenString, err := token.SignedString([]byte(secret))
 	if err != nil {
 		fmt.Println("生成Token失败:", err)
-		return "", errors.New("生成Token失败: " + err.Error())
+		return "", nil, errors.New("生成Token失败: " + err.Error())
 	}
 	fmt.Println("生成的Token:", tokenString)
-	return tokenString, nil
+	kubeconf, err := Conf.ReadConfFunc()
+	if err != nil {
+		fmt.Println(err.Error())
+		return "", nil, errors.New("获取配置文件失败: " + err.Error())
+	}
+	return tokenString, kubeconf, nil
 }

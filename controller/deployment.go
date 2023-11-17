@@ -177,10 +177,11 @@ func (d *deployment) UpdateDeployment(c *gin.Context) {
 	//PUT请求
 	if err := c.ShouldBindJSON(deploy); err != nil {
 		c.JSON(400, gin.H{
-			"err": err.Error(),
+			"err": "bind faild..." + err.Error(),
 		})
 		return
 	}
+	fmt.Println("更新：", deploy.Namespace, deploy.Content)
 	err := service.Deployment.UpdateDeployment(deploy.Namespace, deploy.Content)
 	if err != nil {
 		c.JSON(400, gin.H{

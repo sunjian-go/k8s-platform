@@ -62,6 +62,10 @@ func (p *pod) GetPods(c *gin.Context) {
 // 获取pod详情
 func (p *pod) GetPodDetail(c *gin.Context) {
 	pod := new(podDetail)
+	//pod := new(struct {
+	//	Name      string `form:"name" binding:"required"`
+	//	Namespace string `form:"namespace" binding:"required"`
+	//})
 	if err := c.Bind(pod); err != nil {
 		c.JSON(400, gin.H{
 			"err":  "绑定pod失败" + err.Error(),
@@ -69,7 +73,7 @@ func (p *pod) GetPodDetail(c *gin.Context) {
 		})
 		return
 	}
-	fmt.Println("前端传过来为：", *pod)
+	fmt.Println("前端传过来为：", pod.Name, pod.Namespace)
 	targetPod, err := service.Pod.GetPodDetail(pod.Name, pod.Namespace)
 	if err != nil {
 		c.JSON(400, gin.H{

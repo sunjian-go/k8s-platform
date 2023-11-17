@@ -75,4 +75,7 @@ require (
 	sigs.k8s.io/yaml v1.3.0 // indirect
 )
 
-require github.com/dgrijalva/jwt-go v3.2.0+incompatible // indirect
+require (
+	github.com/Unknwon/goconfig v1.0.0
+	github.com/smartystreets/goconvey v1.8.1 // indirect
+)
