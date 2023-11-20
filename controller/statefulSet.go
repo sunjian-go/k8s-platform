@@ -117,3 +117,27 @@ func (s *statefulSet) UpdateStatefulSet(c *gin.Context) {
 		"msg": "更新statefulSet成功",
 	})
 }
+
+// 创建statefulset
+func (s *statefulSet) CreateStatefulSet(c *gin.Context) {
+	statefulset := new(service.StatefulSetCreate)
+	if err := c.ShouldBind(statefulset); err != nil {
+		c.JSON(400, gin.H{
+			"err":  "数据绑定失败：" + err.Error(),
+			"data": "",
+		})
+		return
+	}
+	err := service.StatefulSet.CreateStatefulSet(statefulset)
+	if err != nil {
+		c.JSON(400, gin.H{
+			"msg":  err.Error(),
+			"data": "",
+		})
+		return
+	}
+	c.JSON(200, gin.H{
+		"msg":  "创建StatefulSet成功",
+		"data": "",
+	})
+}

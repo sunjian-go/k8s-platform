@@ -22,7 +22,7 @@ type DaemonSetResp struct {
 	Total int                `json:"total"`
 }
 
-// 定义DaemonSetCreate结构体，用于创建deployment需要的参数属性的定义
+// 定义DaemonSetCreate结构体，用于创建DaemonSet需要的参数属性的定义
 type DaemonSetCreate struct {
 	Name              string            `json:"name" binding:"required"`
 	Namespace         string            `json:"namespace" binding:"required"`
@@ -35,23 +35,31 @@ type DaemonSetCreate struct {
 	NodeSelectorLabel map[string]string `json:"nodeSelectorLabel"`
 	Containers        []*Container      `json:"containers"`
 }
+
+// 定义卷结构体
 type Volumes struct {
 	VolumeName string `json:"volumeName"`
 	Type       string `json:"type"`
 	Context    string `json:"context"`
 }
+
+// 定义卷挂载结构体
 type MontVolumes struct {
 	Name      string `json:"name"`
 	MountPath string `json:"mountPath"`
 	ReadOnly  bool   `json:"readOnly"`
 	SubPath   string `json:"subPath"`
 }
+
+// 定义容器组结构体
 type Container struct {
 	Name       string            `json:"name"`
 	Image      string            `json:"image"`
 	Ports      []*ContainerPorts `json:"ports"`
 	MontVolume []*MontVolumes    `json:"montVolume"`
 }
+
+// 定义容器端口组结构体
 type ContainerPorts struct {
 	PortName      string `json:"portName"`
 	ContainerPort int32  `json:"containerPort"`

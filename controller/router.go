@@ -31,14 +31,15 @@ func (r *router) InitApiRouter(router *gin.Engine) {
 		PUT("/api/appsv1/updatedeployment", Deployment.UpdateDeployment).
 		GET("/api/appsv1/getnamespacedeployNum", Deployment.GetNamespaceDeployNum).
 		//daemonSet路由
-		POST("/api/appsv1/createDaemonset", DaemonSet.CreateDaemonSet).
 		GET("/api/appsv1/getdaemonSet", DaemonSet.GetDaemonSets).
 		GET("/api/appsv1/getdaemonSetDetail", DaemonSet.GetDaemonSetDetail).
+		POST("/api/appsv1/createDaemonset", DaemonSet.CreateDaemonSet).
 		DELETE("/api/appsv1/deleteDaemonSet", DaemonSet.DeleteDaemonSet).
 		PUT("/api/appsv1/updateDaemonSet", DaemonSet.UpdateDaemonSet).
 		//StatefulSet路由
 		GET("/api/appsv1/getstatefulSets", StatefulSet.GetStatefulSets).
 		GET("/api/appsv1/getstatefulSetDetail", StatefulSet.GetStatefulSetDetail).
+		POST("/api/appsv1/createStatefulSet", StatefulSet.CreateStatefulSet).
 		DELETE("/api/appsv1/deletestatefulSet", StatefulSet.DeleteStatefulSet).
 		PUT("/api/appsv1/updatestatefulSet", StatefulSet.UpdateStatefulSet).
 		//node路由
