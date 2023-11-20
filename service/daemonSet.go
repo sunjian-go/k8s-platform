@@ -51,12 +51,20 @@ type MontVolumes struct {
 	SubPath   string `json:"subPath"`
 }
 
+// 环境变量
+type Env struct {
+	Name  string `json:"name,omitempty"`
+	Value string `json:"value"`
+}
+
 // 定义容器组结构体
 type Container struct {
-	Name       string            `json:"name"`
-	Image      string            `json:"image"`
-	Ports      []*ContainerPorts `json:"ports"`
-	MontVolume []*MontVolumes    `json:"montVolume"`
+	Name            string            `json:"name"`
+	Image           string            `json:"image"`
+	Ports           []*ContainerPorts `json:"ports"`
+	MontVolume      []*MontVolumes    `json:"montVolume"`
+	Envs            []*Env            `json:"envs"`
+	ImagePullpolicy corev1.PullPolicy `json:"imagePullpolicy"`
 }
 
 // 定义容器端口组结构体
@@ -256,9 +264,19 @@ func (d *daemonSet) CreateDaemonSet(daemonsetData *DaemonSetCreate) (err error) 
 			}
 		}
 		containers[i].VolumeMounts = mounts
+		//组装环境变量
+		envs := make([]corev1.EnvVar, len(daemonsetData.Containers[i].Envs))
+		for l, _ := range daemonsetData.Containers[i].Envs {
+			envs[l] = corev1.EnvVar{
+				Name:      daemonsetData.Containers[i].Envs[l].Name,
+				Value:     daemonsetData.Containers[i].Envs[l].Value,
+				ValueFrom: nil,
+			}
+		}
+		containers[i].Env = envs
+		containers[i].ImagePullPolicy = daemonsetData.Containers[i].ImagePullpolicy
 	}
 	daemonset.Spec.Template.Spec.Containers = containers
-
 	//判断是否打开健康检查功能，若打开，则定义ReadinessProbe和LivenessProbe
 	if daemonsetData.HealthCheck {
 		//设置容器的ReadinessProbe

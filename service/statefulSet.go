@@ -32,40 +32,9 @@ type StatefulSetCreate struct {
 	Mem               string            `json:"mem"`
 	HealthCheck       bool              `json:"healthCheck"`
 	HealthPath        string            `json:"healthPath"`
-	Volume            []*volumes        `json:"volume"`
+	Volume            []*Volumes        `json:"volume"`
 	NodeSelectorLabel map[string]string `json:"nodeSelectorLabel"`
-	Containers        []*container      `json:"containers"`
-}
-
-// 定义卷结构体
-type volumes struct {
-	VolumeName string `json:"volumeName"`
-	Type       string `json:"type"`
-	Context    string `json:"context"`
-}
-
-// 定义卷挂载结构体
-type montVolumes struct {
-	Name      string `json:"name"`
-	MountPath string `json:"mountPath"`
-	ReadOnly  bool   `json:"readOnly"`
-	SubPath   string `json:"subPath"`
-}
-
-// 定义容器组结构体
-type container struct {
-	Name       string            `json:"name"`
-	Image      string            `json:"image"`
-	Ports      []*containerPorts `json:"ports"`
-	MontVolume []*montVolumes    `json:"montVolume"`
-}
-
-// 定义容器端口组结构体
-type containerPorts struct {
-	PortName      string `json:"portName"`
-	ContainerPort int32  `json:"containerPort"`
-	HostPort      int32  `json:"hostPort"`
-	HostIP        string `json:"hostIP"`
+	Containers        []*Container      `json:"containers"`
 }
 
 // toCells方法用于将statefulSetCell类型数组，转换成DataCell类型数组
@@ -258,6 +227,17 @@ func (s *statefulSet) CreateStatefulSet(StatefulSetData *StatefulSetCreate) (err
 			}
 		}
 		containers[i].VolumeMounts = mounts
+		//组装环境变量
+		envs := make([]corev1.EnvVar, len(StatefulSetData.Containers[i].Envs))
+		for l, _ := range StatefulSetData.Containers[i].Envs {
+			envs[l] = corev1.EnvVar{
+				Name:      StatefulSetData.Containers[i].Envs[l].Name,
+				Value:     StatefulSetData.Containers[i].Envs[l].Value,
+				ValueFrom: nil,
+			}
+		}
+		containers[i].Env = envs
+		containers[i].ImagePullPolicy = StatefulSetData.Containers[i].ImagePullpolicy
 	}
 	statefulSet.Spec.Template.Spec.Containers = containers
 	//判断是否打开健康检查功能，若打开，则定义ReadinessProbe和LivenessProbe
@@ -318,7 +298,6 @@ func (s *statefulSet) CreateStatefulSet(StatefulSetData *StatefulSetCreate) (err
 		}
 	}
 	fmt.Println("创建之前：", statefulSet)
-
 	//调用sdk创建deployment
 	_, err = K8s.ClientSet.AppsV1().StatefulSets(statefulSet.Namespace).Create(context.TODO(), statefulSet, metav1.CreateOptions{})
 	if err != nil {
