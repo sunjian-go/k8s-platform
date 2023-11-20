@@ -118,3 +118,27 @@ func (d *daemonSet) UpdateDaemonSet(c *gin.Context) {
 		"msg": "更新daemonSet成功",
 	})
 }
+
+// 创建daemonset
+func (d *daemonSet) CreateDaemonSet(c *gin.Context) {
+	daemonset := new(service.DaemonSetCreate)
+	if err := c.ShouldBind(daemonset); err != nil {
+		c.JSON(400, gin.H{
+			"err":  "数据绑定失败：" + err.Error(),
+			"data": "",
+		})
+		return
+	}
+	err := service.DaemonSet.CreateDaemonSet(daemonset)
+	if err != nil {
+		c.JSON(400, gin.H{
+			"msg":  err.Error(),
+			"data": "",
+		})
+		return
+	}
+	c.JSON(200, gin.H{
+		"msg":  "创建daemonset成功",
+		"data": "",
+	})
+}
