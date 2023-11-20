@@ -318,6 +318,7 @@ func (s *statefulSet) CreateStatefulSet(StatefulSetData *StatefulSetCreate) (err
 		}
 	}
 	fmt.Println("创建之前：", statefulSet)
+
 	//调用sdk创建deployment
 	_, err = K8s.ClientSet.AppsV1().StatefulSets(statefulSet.Namespace).Create(context.TODO(), statefulSet, metav1.CreateOptions{})
 	if err != nil {

@@ -258,6 +258,7 @@ func (d *daemonSet) CreateDaemonSet(daemonsetData *DaemonSetCreate) (err error) 
 		containers[i].VolumeMounts = mounts
 	}
 	daemonset.Spec.Template.Spec.Containers = containers
+
 	//判断是否打开健康检查功能，若打开，则定义ReadinessProbe和LivenessProbe
 	if daemonsetData.HealthCheck {
 		//设置容器的ReadinessProbe
