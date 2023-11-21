@@ -112,3 +112,24 @@ func (c *configMap) UpdateConfigMap(ctx *gin.Context) {
 		"msg": "更新cm成功",
 	})
 }
+
+// 创建configMap
+func (c *configMap) CreateConfigMap(ctx *gin.Context) {
+	configmap := new(service.CreateConfigMap)
+	if err := ctx.ShouldBind(configmap); err != nil {
+		ctx.JSON(400, gin.H{
+			"err": "绑定数据失败",
+		})
+		return
+	}
+	if err := service.ConfigMap.CreateConfigMapFunc(configmap); err != nil {
+		ctx.JSON(400, gin.H{
+			"err": err.Error(),
+		})
+		return
+	}
+	ctx.JSON(200, gin.H{
+		"msg":  "创建configMap成功",
+		"data": "",
+	})
+}
