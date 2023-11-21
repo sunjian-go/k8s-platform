@@ -111,3 +111,25 @@ func (p *pvc) UpdatePvc(c *gin.Context) {
 		"msg": "更新pvc成功",
 	})
 }
+
+// 创建pvc
+func (p *pvc) CreatePvc(c *gin.Context) {
+	pvc := new(service.CreatePvc)
+	if err := c.ShouldBind(pvc); err != nil {
+		c.JSON(400, gin.H{
+			"err": "绑定数据失败",
+		})
+		return
+	}
+	if err := service.Pvc.CreatePvc(pvc); err != nil {
+		c.JSON(400, gin.H{
+			"err":  err.Error(),
+			"data": "",
+		})
+		return
+	}
+	c.JSON(200, gin.H{
+		"msg":  "创建pvc成功",
+		"data": "",
+	})
+}

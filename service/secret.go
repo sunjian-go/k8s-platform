@@ -19,6 +19,12 @@ type secretResp struct {
 	Total int
 }
 
+type CreateSecret struct {
+	Name      string            `json:"name"`
+	Namespace string            `json:"namespace"`
+	Data      map[string]string `json:"data"`
+}
+
 func (s *secret) toCell(secrets []corev1.Secret) []DataCell {
 	cells := make([]DataCell, len(secrets))
 	for i := range secrets {
@@ -94,6 +100,27 @@ func (s *secret) UpdateSecret(namespace, content string) (err error) {
 	if err != nil {
 		logger.Error("更新secret失败: " + err.Error())
 		return errors.New("更新secret失败: " + err.Error())
+	}
+	return nil
+}
+
+// 创建secret
+func (s *secret) CreateSecret(secretData *CreateSecret) (err error) {
+	data := make(map[string][]byte)
+	for k, v := range secretData.Data {
+		data[k] = []byte(v)
+	}
+	secret := &corev1.Secret{
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      secretData.Name,
+			Namespace: secretData.Namespace,
+		},
+		Data: data,
+	}
+	_, err = K8s.ClientSet.CoreV1().Secrets(secretData.Namespace).Create(context.TODO(), secret, metav1.CreateOptions{})
+	if err != nil {
+		logger.Error("创建secret失败：" + err.Error())
+		return errors.New("创建secret失败：" + err.Error())
 	}
 	return nil
 }

@@ -74,11 +74,13 @@ func (r *router) InitApiRouter(router *gin.Engine) {
 		//secret路由
 		GET("/api/corev1/getsecrets", Secret.GetSecrets).
 		GET("/api/corev1/getsecretdetail", Secret.GetSecretDetail).
+		POST("/api/corev1/createSecret", Secret.CreateSecret).
 		DELETE("/api/corev1/deletesecret", Secret.DeleteSecret).
 		PUT("/api/corev1/updatesecret", Secret.UpdateSecret).
 		//PVC路由
 		GET("/api/corev1/getpvcs", Pvc.GetPvcs).
 		GET("/api/corev1/getpvcdetail", Pvc.GetPvcDetail).
+		POST("/api/corev1/createPvc", Pvc.CreatePvc).
 		DELETE("/api/corev1/deletepvc", Pvc.DeletePvc).
 		PUT("/api/corev1/updatepvc", Pvc.UpdatePvc).
 		//workflow路由

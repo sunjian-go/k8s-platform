@@ -110,3 +110,27 @@ func (s *secret) UpdateSecret(c *gin.Context) {
 		"msg": "更新secret成功",
 	})
 }
+
+// 创建secret
+func (s *secret) CreateSecret(c *gin.Context) {
+	secret := new(service.CreateSecret)
+	if err := c.ShouldBind(secret); err != nil {
+		c.JSON(400, gin.H{
+			"err":  "绑定数据失败：" + err.Error(),
+			"data": "",
+		})
+		return
+	}
+	err := service.Secret.CreateSecret(secret)
+	if err != nil {
+		c.JSON(400, gin.H{
+			"err":  err.Error(),
+			"data": "",
+		})
+		return
+	}
+	c.JSON(200, gin.H{
+		"msg":  "创建secret成功",
+		"data": "",
+	})
+}

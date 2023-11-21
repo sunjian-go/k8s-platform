@@ -6,6 +6,7 @@ import (
 	"errors"
 	"github.com/wonderivan/logger"
 	corev1 "k8s.io/api/core/v1"
+	"k8s.io/apimachinery/pkg/api/resource"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
@@ -17,6 +18,14 @@ type pvc struct {
 type pvcResp struct {
 	Items []corev1.PersistentVolumeClaim `json:"items"`
 	Total int                            `json:"total"`
+}
+
+type CreatePvc struct {
+	Namespace        string   `json:"namespace"`
+	PvcName          string   `json:"pvc_name"`
+	AccessModes      []string `json:"access_modes"`
+	StorageSize      int64    `json:"storage_size"`
+	StorageClassName string   `json:"storage_class_name"`
 }
 
 func (p *pvc) toCell(pvcs []corev1.PersistentVolumeClaim) []DataCell {
@@ -94,6 +103,41 @@ func (p *pvc) UpdatePvc(namespace, content string) (err error) {
 	if err != nil {
 		logger.Error("更新pvc失败：" + err.Error())
 		return errors.New("更新pvc失败：" + err.Error())
+	}
+	return nil
+}
+
+// 创建pvc
+func (p *pvc) CreatePvc(createPvcData *CreatePvc) (err error) {
+	//创建一个corev1.PersistentVolumeAccessMode的切片来存储前端传过来断言后的值
+	pvcAccessMod := make([]corev1.PersistentVolumeAccessMode, len(createPvcData.AccessModes))
+	//遍历前端传入的字符串切片，将每一个断言成corev1.PersistentVolumeAccessMode类型的再存入上面的切片中
+	for _, accMod := range createPvcData.AccessModes {
+		pvcAccessMod = append(pvcAccessMod, corev1.PersistentVolumeAccessMode(accMod))
+	}
+	//设置存储大小
+	var resourceQuantity resource.Quantity
+	resourceQuantity.Set(createPvcData.StorageSize * 1024 * 1024 * 1024)
+	pvc := &corev1.PersistentVolumeClaim{
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      createPvcData.PvcName,
+			Namespace: createPvcData.Namespace,
+		},
+		Spec: corev1.PersistentVolumeClaimSpec{
+			AccessModes: pvcAccessMod,
+			Resources: corev1.ResourceRequirements{
+				Limits: nil,
+				Requests: corev1.ResourceList{
+					"storage": resourceQuantity,
+				},
+			},
+			StorageClassName: &createPvcData.StorageClassName,
+		},
+	}
+	_, err = K8s.ClientSet.CoreV1().PersistentVolumeClaims(createPvcData.Namespace).Create(context.TODO(), pvc, metav1.CreateOptions{})
+	if err != nil {
+		logger.Error("创建pvc失败：" + err.Error())
+		return errors.New("创建pvc失败：" + err.Error())
 	}
 	return nil
 }

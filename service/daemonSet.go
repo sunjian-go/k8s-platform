@@ -64,7 +64,7 @@ type Container struct {
 	Ports           []*ContainerPorts `json:"ports"`
 	MontVolume      []*MontVolumes    `json:"montVolume"`
 	Envs            []*Env            `json:"envs"`
-	ImagePullpolicy corev1.PullPolicy `json:"imagePullpolicy"`
+	ImagePullpolicy string            `json:"imagePullpolicy"`
 }
 
 // 定义容器端口组结构体
@@ -274,7 +274,7 @@ func (d *daemonSet) CreateDaemonSet(daemonsetData *DaemonSetCreate) (err error) 
 			}
 		}
 		containers[i].Env = envs
-		containers[i].ImagePullPolicy = daemonsetData.Containers[i].ImagePullpolicy
+		containers[i].ImagePullPolicy = corev1.PullPolicy(daemonsetData.Containers[i].ImagePullpolicy)
 	}
 	daemonset.Spec.Template.Spec.Containers = containers
 	//判断是否打开健康检查功能，若打开，则定义ReadinessProbe和LivenessProbe

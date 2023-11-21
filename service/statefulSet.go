@@ -237,7 +237,7 @@ func (s *statefulSet) CreateStatefulSet(StatefulSetData *StatefulSetCreate) (err
 			}
 		}
 		containers[i].Env = envs
-		containers[i].ImagePullPolicy = StatefulSetData.Containers[i].ImagePullpolicy
+		containers[i].ImagePullPolicy = corev1.PullPolicy(StatefulSetData.Containers[i].ImagePullpolicy)
 	}
 	statefulSet.Spec.Template.Spec.Containers = containers
 	//判断是否打开健康检查功能，若打开，则定义ReadinessProbe和LivenessProbe
