@@ -198,7 +198,7 @@ func (s *statefulSet) CreateStatefulSet(StatefulSetData *StatefulSetCreate) (err
 		statefulSet.Spec.Template.Spec.NodeSelector = StatefulSetData.NodeSelectorLabel
 	}
 	//组装每个容器需要的端口配置
-	containers := make([]corev1.Container, len(StatefulSetData.Containers))
+	containers := make([]corev1.Container, len(StatefulSetData.Containers)) //定义一个corev1.Container类型的数组，最后赋值给statefulSet.Spec.Template.Spec.Containers
 	for i, _ := range StatefulSetData.Containers {
 		containers[i] = corev1.Container{
 			Name:  StatefulSetData.Containers[i].Name,
@@ -237,9 +237,10 @@ func (s *statefulSet) CreateStatefulSet(StatefulSetData *StatefulSetCreate) (err
 			}
 		}
 		containers[i].Env = envs
+		//配置镜像下载策略
 		containers[i].ImagePullPolicy = StatefulSetData.Containers[i].ImagePullpolicy
 	}
-	statefulSet.Spec.Template.Spec.Containers = containers
+	statefulSet.Spec.Template.Spec.Containers = containers //赋值的类型一定要一致，不可类似statefulSet.Spec.Template.Spec.Containers[0]=containers[0]这样赋值
 	//判断是否打开健康检查功能，若打开，则定义ReadinessProbe和LivenessProbe
 	if StatefulSetData.HealthCheck {
 		//设置容器的ReadinessProbe

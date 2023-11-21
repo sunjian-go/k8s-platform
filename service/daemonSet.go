@@ -274,6 +274,7 @@ func (d *daemonSet) CreateDaemonSet(daemonsetData *DaemonSetCreate) (err error) 
 			}
 		}
 		containers[i].Env = envs
+		//配置镜像下载策略
 		containers[i].ImagePullPolicy = daemonsetData.Containers[i].ImagePullpolicy
 	}
 	daemonset.Spec.Template.Spec.Containers = containers

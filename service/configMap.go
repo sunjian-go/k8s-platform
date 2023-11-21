@@ -18,6 +18,12 @@ type configMapResp struct {
 	Total int                `json:"total"`
 }
 
+type CreateConfigMap struct {
+	Name      string            `json:"name"`
+	Namespace string            `json:"namespace"`
+	Data      map[string]string `json:"data"`
+}
+
 func (c *configMap) toCell(configMaps []corev1.ConfigMap) []DataCell {
 	cells := make([]DataCell, len(configMaps))
 	for i := range configMaps {
@@ -93,6 +99,23 @@ func (c *configMap) UpdateConfigMap(namespace, content string) (err error) {
 	if err != nil {
 		logger.Error("更新cm失败: " + err.Error())
 		return errors.New("更新cm失败: " + err.Error())
+	}
+	return nil
+}
+
+// 创建configMap
+func (c *configMap) CreateConfigMapFunc(cmData *CreateConfigMap) (err error) {
+	configmap := &corev1.ConfigMap{
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      cmData.Name,
+			Namespace: cmData.Namespace,
+		},
+		Data: cmData.Data,
+	}
+	_, err = K8s.ClientSet.CoreV1().ConfigMaps(cmData.Namespace).Create(context.TODO(), configmap, metav1.CreateOptions{})
+	if err != nil {
+		logger.Error("创建configMap失败: " + err.Error())
+		return errors.New("创建configMap失败: " + err.Error())
 	}
 	return nil
 }
