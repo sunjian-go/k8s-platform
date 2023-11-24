@@ -108,7 +108,6 @@ func (d *DataSelector) Paginate() *DataSelector {
 	//如果传入的limit数量大于等于deployment列表的长度，就把列表实际长度给limit,这时候page就肯定是1了，因为只有一页
 	//fmt.Println("列表长度为：", len(d.GenericDataList))
 	if limit >= len(d.GenericDataList) {
-
 		limit = len(d.GenericDataList)
 		page = 1
 	}

@@ -28,13 +28,9 @@ type StatefulSetCreate struct {
 	Namespace         string            `json:"namespace" binding:"required"`
 	Replicas          int32             `json:"replicas"`
 	Label             map[string]string `json:"label"`
-	Cpu               string            `json:"cpu"`
-	Mem               string            `json:"mem"`
-	HealthCheck       bool              `json:"healthCheck"`
-	HealthPath        string            `json:"healthPath"`
-	Volume            []*Volumes        `json:"volume"`
+	NodeName          string            `json:"nodeName"`
 	NodeSelectorLabel map[string]string `json:"nodeSelectorLabel"`
-	Containers        []*Container      `json:"containers"`
+	Containers        []Container       `json:"containers"`
 }
 
 // toCells方法用于将statefulSetCell类型数组，转换成DataCell类型数组
@@ -124,9 +120,8 @@ func (s *statefulSet) UpdateStatefulSet(namespace, content string) (err error) {
 	return nil
 }
 
-// 创建statefulset
 func (s *statefulSet) CreateStatefulSet(StatefulSetData *StatefulSetCreate) (err error) {
-	statefulSet := &appsv1.StatefulSet{
+	StatefulSet := &appsv1.StatefulSet{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      StatefulSetData.Name,
 			Namespace: StatefulSetData.Namespace,
@@ -146,65 +141,17 @@ func (s *statefulSet) CreateStatefulSet(StatefulSetData *StatefulSetCreate) (err
 		},
 		Status: appsv1.StatefulSetStatus{},
 	}
-	//判断是否有卷需要挂载
-	if StatefulSetData.Volume != nil {
-		var volumeSource corev1.VolumeSource
-		volumes := make([]corev1.Volume, len(StatefulSetData.Volume))
-		for i, _ := range StatefulSetData.Volume {
-			switch StatefulSetData.Volume[i].Type {
-			case "configMap":
-				volumeSource = corev1.VolumeSource{
-					ConfigMap: &corev1.ConfigMapVolumeSource{
-						LocalObjectReference: corev1.LocalObjectReference{
-							Name: StatefulSetData.Volume[i].Context,
-						},
-					},
-				}
-			case "HostPath":
-				volumeSource = corev1.VolumeSource{
-					HostPath: &corev1.HostPathVolumeSource{
-						Path: StatefulSetData.Volume[i].Context,
-					},
-				}
-			case "EmptyDir":
-				volumeSource = corev1.VolumeSource{
-					EmptyDir: &corev1.EmptyDirVolumeSource{},
-				}
-			case "PersistentVolumeClaim":
-				volumeSource = corev1.VolumeSource{
-					PersistentVolumeClaim: &corev1.PersistentVolumeClaimVolumeSource{
-						ClaimName: StatefulSetData.Volume[i].Context,
-					},
-				}
-			case "Secret":
-				volumeSource = corev1.VolumeSource{
-					Secret: &corev1.SecretVolumeSource{
-						SecretName: StatefulSetData.Volume[i].Context,
-					},
-				}
-			}
-			//给volume数组赋值
-			volumes[i] = corev1.Volume{
-				Name:         StatefulSetData.Volume[i].VolumeName,
-				VolumeSource: volumeSource,
-			}
-			fmt.Println("赋值前：", volumes)
-		}
-		statefulSet.Spec.Template.Spec.Volumes = volumes
-		fmt.Println("卷数据为：", statefulSet.Spec.Template.Spec.Volumes)
-	}
-	//判断是否使用节点亲和性
-	if StatefulSetData.NodeSelectorLabel != nil {
-		statefulSet.Spec.Template.Spec.NodeSelector = StatefulSetData.NodeSelectorLabel
-	}
-	//组装每个容器需要的端口配置
+
+	//先准备一个container数组准备添加数据
 	containers := make([]corev1.Container, len(StatefulSetData.Containers))
 	for i, _ := range StatefulSetData.Containers {
+		//组装每个容器需要的端口配置
 		containers[i] = corev1.Container{
 			Name:  StatefulSetData.Containers[i].Name,
 			Image: StatefulSetData.Containers[i].Image,
 		}
-		//组装每个容器需要的端口组
+
+		//组装每个容器需要的端口组，查看一共几组ports，组装每一组，最后赋值给containers[i].Ports
 		ports := make([]corev1.ContainerPort, len(StatefulSetData.Containers[i].Ports))
 		for j, _ := range StatefulSetData.Containers[i].Ports {
 			ports[j] = corev1.ContainerPort{
@@ -216,6 +163,7 @@ func (s *statefulSet) CreateStatefulSet(StatefulSetData *StatefulSetCreate) (err
 			}
 		}
 		containers[i].Ports = ports
+
 		//组装每个容器的卷挂载组
 		mounts := make([]corev1.VolumeMount, len(StatefulSetData.Containers[i].MontVolume))
 		for k, _ := range StatefulSetData.Containers[i].MontVolume {
@@ -227,6 +175,7 @@ func (s *statefulSet) CreateStatefulSet(StatefulSetData *StatefulSetCreate) (err
 			}
 		}
 		containers[i].VolumeMounts = mounts
+
 		//组装环境变量
 		envs := make([]corev1.EnvVar, len(StatefulSetData.Containers[i].Envs))
 		for l, _ := range StatefulSetData.Containers[i].Envs {
@@ -238,71 +187,145 @@ func (s *statefulSet) CreateStatefulSet(StatefulSetData *StatefulSetCreate) (err
 		}
 		containers[i].Env = envs
 		containers[i].ImagePullPolicy = corev1.PullPolicy(StatefulSetData.Containers[i].ImagePullpolicy)
-	}
-	statefulSet.Spec.Template.Spec.Containers = containers
-	//判断是否打开健康检查功能，若打开，则定义ReadinessProbe和LivenessProbe
-	if StatefulSetData.HealthCheck {
-		//设置容器的ReadinessProbe
-		//若pod中有多个容器，则这里需要使用for循环去定义了
-		for i, _ := range statefulSet.Spec.Template.Spec.Containers {
-			statefulSet.Spec.Template.Spec.Containers[i].ReadinessProbe = &corev1.Probe{
-				ProbeHandler: corev1.ProbeHandler{
-					HTTPGet: &corev1.HTTPGetAction{
-						Path: StatefulSetData.HealthPath,
-						//intstr.IntOrString的作用是端口可以定义为整型，也可以定义为字符串
-						//Type=0则表示表示该结构体实例内的数据为整型，转json时只使用IntVal的数据
-						//Type=1则表示表示该结构体实例内的数据为字符串，转json时只使用StrVal的数据
-						Port: intstr.IntOrString{
-							Type:   0,
-							IntVal: StatefulSetData.Containers[i].Ports[i].ContainerPort,
+
+		//判断是否打开健康检查功能，若打开，则定义ReadinessProbe和LivenessProbe
+		if StatefulSetData.Containers[i].HealthCheck {
+			//设置容器的ReadinessProbe
+			//若pod中有多个容器，则这里需要使用for循环去定义了
+			for k, _ := range containers[i].Ports {
+				containers[i].ReadinessProbe = &corev1.Probe{
+					ProbeHandler: corev1.ProbeHandler{
+						HTTPGet: &corev1.HTTPGetAction{
+							Path: StatefulSetData.Containers[i].HealthPath,
+							//intstr.IntOrString的作用是端口可以定义为整型，也可以定义为字符串
+							//Type=0则表示表示该结构体实例内的数据为整型，转json时只使用IntVal的数据
+							//Type=1则表示表示该结构体实例内的数据为字符串，转json时只使用StrVal的数据
+							Port: intstr.IntOrString{
+								Type:   0,
+								IntVal: containers[i].Ports[k].ContainerPort,
+							},
 						},
 					},
-				},
-				//初始化等待时间
-				InitialDelaySeconds: 5,
-				//超时时间
-				TimeoutSeconds: 5,
-				//执行间隔
-				PeriodSeconds: 5,
-			}
-			statefulSet.Spec.Template.Spec.Containers[i].LivenessProbe = &corev1.Probe{
-				ProbeHandler: corev1.ProbeHandler{
-					HTTPGet: &corev1.HTTPGetAction{
-						Path: StatefulSetData.HealthPath,
-						Port: intstr.IntOrString{
-							Type:   0,
-							IntVal: StatefulSetData.Containers[i].Ports[i].ContainerPort,
+					//初始化等待时间
+					InitialDelaySeconds: 5,
+					//超时时间
+					TimeoutSeconds: 5,
+					//执行间隔
+					PeriodSeconds: 5,
+				}
+				containers[i].LivenessProbe = &corev1.Probe{
+					ProbeHandler: corev1.ProbeHandler{
+						HTTPGet: &corev1.HTTPGetAction{
+							Path: StatefulSetData.Containers[i].HealthPath,
+							//intstr.IntOrString的作用是端口可以定义为整型，也可以定义为字符串
+							//Type=0则表示表示该结构体实例内的数据为整型，转json时只使用IntVal的数据
+							//Type=1则表示表示该结构体实例内的数据为字符串，转json时只使用StrVal的数据
+							Port: intstr.IntOrString{
+								Type:   0,
+								IntVal: containers[i].Ports[k].ContainerPort,
+							},
 						},
 					},
-				},
-				InitialDelaySeconds: 15,
-				TimeoutSeconds:      5,
-				PeriodSeconds:       5,
+					InitialDelaySeconds: 15,
+					TimeoutSeconds:      5,
+					PeriodSeconds:       5,
+				}
 			}
 		}
-	}
-	//当cpu和mem值不为空的时候，才去配置资源限制
-	if StatefulSetData.Mem != "" && StatefulSetData.Cpu != "" {
-		for i, _ := range statefulSet.Spec.Template.Spec.Containers {
+
+		//当cpu和mem值不为空的时候，才去配置资源限制
+		if StatefulSetData.Containers[i].Mem != "" && StatefulSetData.Containers[i].Cpu != "" {
 			//定义容器的limit和request资源: 设置 CPU 和内存的值
-			statefulSet.Spec.Template.Spec.Containers[i].Resources.Limits =
+			containers[i].Resources.Limits =
 				map[corev1.ResourceName]resource.Quantity{
-					corev1.ResourceCPU:    resource.MustParse(StatefulSetData.Cpu),
-					corev1.ResourceMemory: resource.MustParse(StatefulSetData.Mem),
+					corev1.ResourceCPU:    resource.MustParse(StatefulSetData.Containers[i].Cpu),
+					corev1.ResourceMemory: resource.MustParse(StatefulSetData.Containers[i].Mem),
 				}
-			statefulSet.Spec.Template.Spec.Containers[i].Resources.Requests =
+			containers[i].Resources.Requests =
 				map[corev1.ResourceName]resource.Quantity{
-					corev1.ResourceCPU:    resource.MustParse(StatefulSetData.Cpu),
-					corev1.ResourceMemory: resource.MustParse(StatefulSetData.Mem),
+					corev1.ResourceCPU:    resource.MustParse(StatefulSetData.Containers[i].Cpu),
+					corev1.ResourceMemory: resource.MustParse(StatefulSetData.Containers[i].Mem),
 				}
 		}
 	}
-	fmt.Println("创建之前：", statefulSet)
+	StatefulSet.Spec.Template.Spec.Containers = containers
+
+	//计算出所有容器需要用到的卷的总数
+	volumeTotal := 0
+	volemeStatus := false //如果某个容器使用了卷，就置为true
+	for i, _ := range StatefulSetData.Containers {
+		if StatefulSetData.Containers[i].Volume != nil {
+			volemeStatus = true
+			volumeTotal = volumeTotal + len(StatefulSetData.Containers[i].Volume)
+		}
+	}
+	if volemeStatus {
+		var volumeIndex = 0
+		volumes := make([]corev1.Volume, volumeTotal)
+		for i, _ := range StatefulSetData.Containers {
+			if StatefulSetData.Containers[i].Volume != nil {
+				var volumeSource corev1.VolumeSource
+				//遍历单个容器中有几组卷，根据卷类型，挨个组装完整的单个卷对象
+				for j, _ := range StatefulSetData.Containers[i].Volume {
+					switch StatefulSetData.Containers[i].Volume[j].Type {
+					case "configMap":
+						volumeSource = corev1.VolumeSource{
+							ConfigMap: &corev1.ConfigMapVolumeSource{
+								LocalObjectReference: corev1.LocalObjectReference{
+									Name: StatefulSetData.Containers[i].Volume[j].Context,
+								},
+							},
+						}
+					case "HostPath":
+						volumeSource = corev1.VolumeSource{
+							HostPath: &corev1.HostPathVolumeSource{
+								Path: StatefulSetData.Containers[i].Volume[j].Context,
+							},
+						}
+					case "EmptyDir":
+						volumeSource = corev1.VolumeSource{
+							EmptyDir: &corev1.EmptyDirVolumeSource{},
+						}
+					case "PersistentVolumeClaim":
+						volumeSource = corev1.VolumeSource{
+							PersistentVolumeClaim: &corev1.PersistentVolumeClaimVolumeSource{
+								ClaimName: StatefulSetData.Containers[i].Volume[j].Context,
+							},
+						}
+					case "Secret":
+						volumeSource = corev1.VolumeSource{
+							Secret: &corev1.SecretVolumeSource{
+								SecretName: StatefulSetData.Containers[i].Volume[j].Context,
+							},
+						}
+					}
+					//给volume数组赋值
+					volumes[volumeIndex] = corev1.Volume{
+						Name:         StatefulSetData.Containers[i].Volume[j].VolumeName,
+						VolumeSource: volumeSource,
+					}
+					volumeIndex++
+					fmt.Println("赋值前的volume索引为：", volumeIndex)
+				}
+
+			}
+			StatefulSet.Spec.Template.Spec.Volumes = volumes
+			fmt.Println("卷数据为：", volumes)
+		}
+	}
+	//判断是否使用节点亲和性和nodeName
+	if StatefulSetData.NodeSelectorLabel != nil {
+		StatefulSet.Spec.Template.Spec.NodeSelector = StatefulSetData.NodeSelectorLabel
+	}
+	if StatefulSetData.NodeName != "" {
+		StatefulSet.Spec.Template.Spec.NodeName = StatefulSetData.NodeName
+	}
+	fmt.Println("创建之前：", StatefulSet.Spec.Template.Spec.Volumes[0].Name, StatefulSet.Spec.Template.Spec.Volumes[1].Name)
 	//调用sdk创建deployment
-	_, err = K8s.ClientSet.AppsV1().StatefulSets(statefulSet.Namespace).Create(context.TODO(), statefulSet, metav1.CreateOptions{})
+	_, err = K8s.ClientSet.AppsV1().StatefulSets(StatefulSet.Namespace).Create(context.TODO(), StatefulSet, metav1.CreateOptions{})
 	if err != nil {
-		logger.Error("创建statefulSet失败: " + err.Error())
-		return errors.New("创建statefulSet失败: " + err.Error())
+		logger.Error("创建StatefulSet失败: " + err.Error())
+		return errors.New("创建StatefulSet失败: " + err.Error())
 	}
 	return nil
 }
