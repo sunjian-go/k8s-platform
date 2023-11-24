@@ -31,9 +31,9 @@ type DaemonSetCreate struct {
 	Mem               string            `json:"mem"`
 	HealthCheck       bool              `json:"healthCheck"`
 	HealthPath        string            `json:"healthPath"`
-	Volume            []*Volumes        `json:"volume"`
+	Volume            []Volumes         `json:"volume"`
 	NodeSelectorLabel map[string]string `json:"nodeSelectorLabel"`
-	Containers        []*Container      `json:"containers"`
+	Containers        []Container       `json:"containers"`
 }
 
 // 定义卷结构体

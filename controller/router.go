@@ -84,6 +84,7 @@ func (r *router) InitApiRouter(router *gin.Engine) {
 		POST("/api/corev1/createPvc", Pvc.CreatePvc).
 		DELETE("/api/corev1/deletepvc", Pvc.DeletePvc).
 		PUT("/api/corev1/updatepvc", Pvc.UpdatePvc).
+		GET("/api/corev1/getStorageClasses", Pvc.GetStorageClasses).
 		//workflow路由
 		GET("/api/workflow/getworkflows", Workflow.GetWorkflows).
 		GET("/api/workflow/getbyid", Workflow.GetById).

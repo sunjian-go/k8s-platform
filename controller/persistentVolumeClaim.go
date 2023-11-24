@@ -133,3 +133,19 @@ func (p *pvc) CreatePvc(c *gin.Context) {
 		"data": "",
 	})
 }
+
+// 获取storageClass列表
+func (p *pvc) GetStorageClasses(c *gin.Context) {
+	scResp, err := service.Pvc.GetStorageClass()
+	if err != nil {
+		c.JSON(400, gin.H{
+			"err":  err.Error(),
+			"data": nil,
+		})
+		return
+	}
+	c.JSON(200, gin.H{
+		"msg":  "获取storageClass列表成功",
+		"data": scResp,
+	})
+}

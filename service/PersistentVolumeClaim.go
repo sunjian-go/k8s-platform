@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"github.com/wonderivan/logger"
 	corev1 "k8s.io/api/core/v1"
+	storagev1 "k8s.io/api/storage/v1"
 	"k8s.io/apimachinery/pkg/api/resource"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
@@ -27,6 +28,12 @@ type CreatePvc struct {
 	AccessMode       string `json:"access_mode"`
 	StorageSize      int64  `json:"storage_size"`
 	StorageClassName string `json:"storage_class_name"`
+}
+
+// 获取storageClass列表
+type storageClassResp struct {
+	Total          int                      `json:"total"`
+	StorageClasses []storagev1.StorageClass `json:"storageClasses"`
 }
 
 func (p *pvc) toCell(pvcs []corev1.PersistentVolumeClaim) []DataCell {
@@ -135,4 +142,17 @@ func (p *pvc) CreatePvc(createPvcData *CreatePvc) (err error) {
 		return errors.New("创建pvc失败：" + err.Error())
 	}
 	return nil
+}
+
+// 获取storageClass
+func (p *pvc) GetStorageClass() (scResp *storageClassResp, err error) {
+	scList, err := K8s.ClientSet.StorageV1().StorageClasses().List(context.TODO(), metav1.ListOptions{})
+	if err != nil {
+		logger.Error("获取storageClass列表失败: " + err.Error())
+		return nil, errors.New("获取storageClass列表失败: " + err.Error())
+	}
+	return &storageClassResp{
+		Total:          len(scList.Items),
+		StorageClasses: scList.Items,
+	}, nil
 }
