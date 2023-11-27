@@ -31,6 +31,7 @@ type StatefulSetCreate struct {
 	NodeName          string            `json:"nodeName"`
 	NodeSelectorLabel map[string]string `json:"nodeSelectorLabel"`
 	Containers        []Container       `json:"containers"`
+	Volume            []Volume          `json:"volume"`
 }
 
 // toCells方法用于将statefulSetCell类型数组，转换成DataCell类型数组
@@ -250,69 +251,55 @@ func (s *statefulSet) CreateStatefulSet(StatefulSetData *StatefulSetCreate) (err
 	}
 	StatefulSet.Spec.Template.Spec.Containers = containers
 
-	//计算出所有容器需要用到的卷的总数
-	volumeTotal := 0
-	volemeStatus := false //如果某个容器使用了卷，就置为true
-	for i, _ := range StatefulSetData.Containers {
-		if StatefulSetData.Containers[i].Volume != nil {
-			volemeStatus = true
-			volumeTotal = volumeTotal + len(StatefulSetData.Containers[i].Volume)
-		}
-	}
-	if volemeStatus {
-		var volumeIndex = 0
-		volumes := make([]corev1.Volume, volumeTotal)
-		for i, _ := range StatefulSetData.Containers {
-			if StatefulSetData.Containers[i].Volume != nil {
-				var volumeSource corev1.VolumeSource
-				//遍历单个容器中有几组卷，根据卷类型，挨个组装完整的单个卷对象
-				for j, _ := range StatefulSetData.Containers[i].Volume {
-					switch StatefulSetData.Containers[i].Volume[j].Type {
-					case "configMap":
-						volumeSource = corev1.VolumeSource{
-							ConfigMap: &corev1.ConfigMapVolumeSource{
-								LocalObjectReference: corev1.LocalObjectReference{
-									Name: StatefulSetData.Containers[i].Volume[j].Context,
-								},
-							},
-						}
-					case "HostPath":
-						volumeSource = corev1.VolumeSource{
-							HostPath: &corev1.HostPathVolumeSource{
-								Path: StatefulSetData.Containers[i].Volume[j].Context,
-							},
-						}
-					case "EmptyDir":
-						volumeSource = corev1.VolumeSource{
-							EmptyDir: &corev1.EmptyDirVolumeSource{},
-						}
-					case "PersistentVolumeClaim":
-						volumeSource = corev1.VolumeSource{
-							PersistentVolumeClaim: &corev1.PersistentVolumeClaimVolumeSource{
-								ClaimName: StatefulSetData.Containers[i].Volume[j].Context,
-							},
-						}
-					case "Secret":
-						volumeSource = corev1.VolumeSource{
-							Secret: &corev1.SecretVolumeSource{
-								SecretName: StatefulSetData.Containers[i].Volume[j].Context,
-							},
-						}
-					}
-					//给volume数组赋值
-					volumes[volumeIndex] = corev1.Volume{
-						Name:         StatefulSetData.Containers[i].Volume[j].VolumeName,
-						VolumeSource: volumeSource,
-					}
-					volumeIndex++
-					fmt.Println("赋值前的volume索引为：", volumeIndex)
+	//判断使用使用了挂载卷
+	if len(StatefulSetData.Volume) > 0 {
+		volumes := make([]corev1.Volume, len(StatefulSetData.Volume))
+		var volumeSource corev1.VolumeSource
+		for i, _ := range StatefulSetData.Volume {
+			//遍历单个容器中有几组卷，根据卷类型，挨个组装完整的单个卷对象
+			switch StatefulSetData.Volume[i].Type {
+			case "configMap":
+				volumeSource = corev1.VolumeSource{
+					ConfigMap: &corev1.ConfigMapVolumeSource{
+						LocalObjectReference: corev1.LocalObjectReference{
+							Name: StatefulSetData.Volume[i].Context,
+						},
+					},
 				}
-
+			case "HostPath":
+				volumeSource = corev1.VolumeSource{
+					HostPath: &corev1.HostPathVolumeSource{
+						Path: StatefulSetData.Volume[i].Context,
+					},
+				}
+			case "EmptyDir":
+				volumeSource = corev1.VolumeSource{
+					EmptyDir: &corev1.EmptyDirVolumeSource{},
+				}
+			case "PersistentVolumeClaim":
+				volumeSource = corev1.VolumeSource{
+					PersistentVolumeClaim: &corev1.PersistentVolumeClaimVolumeSource{
+						ClaimName: StatefulSetData.Volume[i].Context,
+					},
+				}
+			case "Secret":
+				volumeSource = corev1.VolumeSource{
+					Secret: &corev1.SecretVolumeSource{
+						SecretName: StatefulSetData.Volume[i].Context,
+					},
+				}
 			}
-			StatefulSet.Spec.Template.Spec.Volumes = volumes
-			fmt.Println("卷数据为：", volumes)
+			//给volume数组赋值
+			volumes[i] = corev1.Volume{
+				Name:         StatefulSetData.Volume[i].VolumeName,
+				VolumeSource: volumeSource,
+			}
+			fmt.Println("赋值前的volume为：", volumes[i])
 		}
+		StatefulSet.Spec.Template.Spec.Volumes = volumes
+		fmt.Println("卷数据为：", StatefulSet.Spec.Template.Spec.Volumes)
 	}
+
 	//判断是否使用节点亲和性和nodeName
 	if StatefulSetData.NodeSelectorLabel != nil {
 		StatefulSet.Spec.Template.Spec.NodeSelector = StatefulSetData.NodeSelectorLabel

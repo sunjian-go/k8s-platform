@@ -30,10 +30,11 @@ type DaemonSetCreate struct {
 	NodeName          string            `json:"nodeName"`
 	NodeSelectorLabel map[string]string `json:"nodeSelectorLabel"`
 	Containers        []Container       `json:"containers"`
+	Volume            []Volume          `json:"volume"`
 }
 
 // 定义卷结构体
-type Volumes struct {
+type Volume struct {
 	VolumeName string `json:"volumeName"`
 	Type       string `json:"type"`
 	Context    string `json:"context"`
@@ -65,7 +66,6 @@ type Container struct {
 	Mem             string           `json:"mem"`
 	HealthCheck     bool             `json:"healthCheck"`
 	HealthPath      string           `json:"healthPath"`
-	Volume          []Volumes        `json:"volume"`
 }
 
 // 定义容器端口组结构体
@@ -294,69 +294,55 @@ func (d *daemonSet) CreateDaemonSet(daemonsetData *DaemonSetCreate) (err error) 
 	}
 	daemonset.Spec.Template.Spec.Containers = containers
 
-	//计算出所有容器需要用到的卷的总数
-	volumeTotal := 0
-	volemeStatus := false //如果某个容器使用了卷，就置为true
-	for i, _ := range daemonsetData.Containers {
-		if daemonsetData.Containers[i].Volume != nil {
-			volemeStatus = true
-			volumeTotal = volumeTotal + len(daemonsetData.Containers[i].Volume)
-		}
-	}
-	if volemeStatus {
-		var volumeIndex = 0
-		volumes := make([]corev1.Volume, volumeTotal)
-		for i, _ := range daemonsetData.Containers {
-			if daemonsetData.Containers[i].Volume != nil {
-				var volumeSource corev1.VolumeSource
-				//遍历单个容器中有几组卷，根据卷类型，挨个组装完整的单个卷对象
-				for j, _ := range daemonsetData.Containers[i].Volume {
-					switch daemonsetData.Containers[i].Volume[j].Type {
-					case "configMap":
-						volumeSource = corev1.VolumeSource{
-							ConfigMap: &corev1.ConfigMapVolumeSource{
-								LocalObjectReference: corev1.LocalObjectReference{
-									Name: daemonsetData.Containers[i].Volume[j].Context,
-								},
-							},
-						}
-					case "HostPath":
-						volumeSource = corev1.VolumeSource{
-							HostPath: &corev1.HostPathVolumeSource{
-								Path: daemonsetData.Containers[i].Volume[j].Context,
-							},
-						}
-					case "EmptyDir":
-						volumeSource = corev1.VolumeSource{
-							EmptyDir: &corev1.EmptyDirVolumeSource{},
-						}
-					case "PersistentVolumeClaim":
-						volumeSource = corev1.VolumeSource{
-							PersistentVolumeClaim: &corev1.PersistentVolumeClaimVolumeSource{
-								ClaimName: daemonsetData.Containers[i].Volume[j].Context,
-							},
-						}
-					case "Secret":
-						volumeSource = corev1.VolumeSource{
-							Secret: &corev1.SecretVolumeSource{
-								SecretName: daemonsetData.Containers[i].Volume[j].Context,
-							},
-						}
-					}
-					//给volume数组赋值
-					volumes[volumeIndex] = corev1.Volume{
-						Name:         daemonsetData.Containers[i].Volume[j].VolumeName,
-						VolumeSource: volumeSource,
-					}
-					volumeIndex++
-					fmt.Println("赋值前的volume索引为：", volumeIndex)
+	//判断使用使用了挂载卷
+	if len(daemonsetData.Volume) > 0 {
+		volumes := make([]corev1.Volume, len(daemonsetData.Volume))
+		var volumeSource corev1.VolumeSource
+		for i, _ := range daemonsetData.Volume {
+			//遍历单个容器中有几组卷，根据卷类型，挨个组装完整的单个卷对象
+			switch daemonsetData.Volume[i].Type {
+			case "configMap":
+				volumeSource = corev1.VolumeSource{
+					ConfigMap: &corev1.ConfigMapVolumeSource{
+						LocalObjectReference: corev1.LocalObjectReference{
+							Name: daemonsetData.Volume[i].Context,
+						},
+					},
 				}
-
+			case "HostPath":
+				volumeSource = corev1.VolumeSource{
+					HostPath: &corev1.HostPathVolumeSource{
+						Path: daemonsetData.Volume[i].Context,
+					},
+				}
+			case "EmptyDir":
+				volumeSource = corev1.VolumeSource{
+					EmptyDir: &corev1.EmptyDirVolumeSource{},
+				}
+			case "PersistentVolumeClaim":
+				volumeSource = corev1.VolumeSource{
+					PersistentVolumeClaim: &corev1.PersistentVolumeClaimVolumeSource{
+						ClaimName: daemonsetData.Volume[i].Context,
+					},
+				}
+			case "Secret":
+				volumeSource = corev1.VolumeSource{
+					Secret: &corev1.SecretVolumeSource{
+						SecretName: daemonsetData.Volume[i].Context,
+					},
+				}
 			}
-			daemonset.Spec.Template.Spec.Volumes = volumes
-			fmt.Println("卷数据为：", volumes)
+			//给volume数组赋值
+			volumes[i] = corev1.Volume{
+				Name:         daemonsetData.Volume[i].VolumeName,
+				VolumeSource: volumeSource,
+			}
+			fmt.Println("赋值前的volume为：", volumes[i])
 		}
+		daemonset.Spec.Template.Spec.Volumes = volumes
+		fmt.Println("卷数据为：", daemonset.Spec.Template.Spec.Volumes[3].Name)
 	}
+
 	//判断是否使用节点亲和性
 	if daemonsetData.NodeSelectorLabel != nil {
 		daemonset.Spec.Template.Spec.NodeSelector = daemonsetData.NodeSelectorLabel
@@ -364,7 +350,7 @@ func (d *daemonSet) CreateDaemonSet(daemonsetData *DaemonSetCreate) (err error) 
 	if daemonsetData.NodeName != "" {
 		daemonset.Spec.Template.Spec.NodeName = daemonsetData.NodeName
 	}
-	fmt.Println("创建之前：", daemonset.Spec.Template.Spec.Volumes[0].Name, daemonset.Spec.Template.Spec.Volumes[1].Name)
+	fmt.Println("创建之前：", daemonset.Spec.Template.Spec.Volumes[3].Name)
 	//调用sdk创建deployment
 	_, err = K8s.ClientSet.AppsV1().DaemonSets(daemonset.Namespace).Create(context.TODO(), daemonset, metav1.CreateOptions{})
 	if err != nil {
