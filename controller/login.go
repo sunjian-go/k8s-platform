@@ -20,6 +20,8 @@ func (l *login) Login(c *gin.Context) {
 		return
 	}
 	fmt.Println("客户端登录：", user.Username, user.Password)
+
+	//返回token和配置文件中的webSocket地址
 	token, kubeconf, err := service.Login.Login(user)
 	if err != nil {
 		c.JSON(400, gin.H{

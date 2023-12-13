@@ -30,6 +30,7 @@ func (l *login) Login(adminuser *User) (string, map[string]string, error) {
 		logger.Error("username or password not is null...")
 		return "", nil, errors.New("username or password not is null")
 	}
+
 	//验证账密通过后，生成token
 	// 定义加密因子
 	secret := "sunjiandevops"
@@ -37,7 +38,7 @@ func (l *login) Login(adminuser *User) (string, map[string]string, error) {
 	token := jwt.New(jwt.SigningMethodHS256)
 	// 设置Token的Claim(声明)，这是您自定义的数据
 	claims := token.Claims.(jwt.MapClaims)
-	claims["exp"] = time.Now().Add(time.Hour * 1 / 2).Unix() // 设置Token过期时间（半小时）
+	claims["exp"] = time.Now().Add(time.Hour * 2).Unix() // 设置Token过期时间（2小时）
 	claims["user_id"] = "1234567"
 	claims["username"] = adminuser.Username
 
